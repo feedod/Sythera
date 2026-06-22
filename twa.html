@@ -1,0 +1,1745 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"
+    />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#000000" />
+
+    <link rel="preconnect" href="https://esm.sh" crossorigin />
+    <link rel="preconnect" href="https://unpkg.com" crossorigin />
+
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #000;
+      }
+      body {
+        color: #f5f5f7;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+          system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      [x-cloak] {
+        display: none !important;
+      }
+      video {
+        pointer-events: none;
+      }
+      video::-webkit-media-controls,
+      video::-webkit-media-controls-enclosure,
+      video::-webkit-media-controls-panel,
+      video::-webkit-media-controls-overlay-play-button,
+      video::-webkit-media-controls-start-playback-button,
+      video::-webkit-media-controls-play-button {
+        display: none !important;
+        -webkit-appearance: none !important;
+        opacity: 0 !important;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      dialog {
+        position: fixed;
+        inset: 0;
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        height: 100svh;
+        max-width: 100vw;
+        max-height: 100svh;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        overflow: clip;
+      }
+      dialog::backdrop {
+        background: rgba(0, 0, 0, 0.6);
+        opacity: 0;
+        transition: opacity 0.32s ease;
+      }
+      dialog.dialog-shown::backdrop {
+        opacity: 1;
+      }
+      dialog.onboard::backdrop {
+        background: transparent;
+      }
+      .sheet-panel {
+        translate: 0 100%;
+        transition: translate 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .dialog-shown .sheet-panel {
+        translate: 0 0;
+      }
+      .fade-panel {
+        opacity: 0;
+        transition: opacity 0.32s ease;
+      }
+      .dialog-shown .fade-panel {
+        opacity: 1;
+      }
+    </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "alpinejs": "https://esm.sh/alpinejs@3",
+          "@telegram-apps/sdk": "https://esm.sh/@telegram-apps/sdk@3",
+          "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+        }
+      }
+    </script>
+
+    <style type="text/tailwindcss">
+      @theme {
+        --color-bg: #000000;
+        --color-fg: #f5f5f7;
+        --color-muted: #8e8e93;
+        --color-danger: #ff453a;
+        --color-accent: #f5f5f7;
+        --color-on-accent: #0a0a0a;
+        --font-sans:
+          -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+          "Helvetica Neue", system-ui, sans-serif;
+        --animate-rise: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+        --animate-shot: shot 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+        --animate-spin-slow: spin 0.9s linear infinite;
+        --animate-heart: heart 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+        @keyframes rise {
+          from {
+            opacity: 0;
+            translate: 0 8px;
+            filter: blur(2px);
+          }
+          to {
+            opacity: 1;
+            translate: 0 0;
+            filter: blur(0);
+          }
+        }
+        @keyframes shot {
+          from {
+            opacity: 0;
+            scale: 0.94;
+          }
+          to {
+            opacity: 1;
+            scale: 1;
+          }
+        }
+        @keyframes heart {
+          0% {
+            opacity: 0;
+            scale: 0.3;
+          }
+          15% {
+            opacity: 0.95;
+            scale: 1.1;
+          }
+          30% {
+            scale: 0.92;
+          }
+          45% {
+            opacity: 0.95;
+            scale: 1;
+          }
+          100% {
+            opacity: 0;
+            scale: 1.25;
+          }
+        }
+      }
+
+      @layer base {
+        body {
+          -moz-osx-font-smoothing: grayscale;
+          text-rendering: optimizeLegibility;
+          -webkit-tap-highlight-color: transparent;
+          -webkit-user-select: none;
+          user-select: none;
+          touch-action: manipulation;
+          overscroll-behavior: none;
+        }
+      }
+
+      @layer components {
+        .safe-b {
+          padding-bottom: var(--safe-bottom, env(safe-area-inset-bottom));
+        }
+        .safe-x {
+          padding-left: var(--safe-left, env(safe-area-inset-left));
+          padding-right: var(--safe-right, env(safe-area-inset-right));
+        }
+        .safe {
+          padding: var(--safe-top, env(safe-area-inset-top))
+            var(--safe-right, env(safe-area-inset-right))
+            var(--safe-bottom, env(safe-area-inset-bottom))
+            var(--safe-left, env(safe-area-inset-left));
+        }
+        .glass {
+          background: rgba(255, 255, 255, 0.06);
+          -webkit-backdrop-filter: blur(22px) saturate(165%);
+          backdrop-filter: blur(22px) saturate(165%);
+        }
+        .glass-dark {
+          background: rgba(0, 0, 0, 0.5);
+          -webkit-backdrop-filter: blur(22px) saturate(140%);
+          backdrop-filter: blur(22px) saturate(140%);
+        }
+        .no-scrollbar {
+          scrollbar-width: none;
+        }
+      }
+    </style>
+
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+
+    <script type="module">
+      import Alpine from "alpinejs";
+      import { createClient } from "@supabase/supabase-js";
+      import {
+        init as initTelegram,
+        miniApp,
+        viewport,
+        swipeBehavior,
+        closingBehavior,
+        backButton,
+        cloudStorage,
+        hapticFeedback,
+        shareURL,
+        openTelegramLink,
+        downloadFile,
+        popup,
+        requestWriteAccess,
+        retrieveLaunchParams,
+        retrieveRawInitData,
+      } from "@telegram-apps/sdk";
+
+      const CONFIG = {
+        SUPABASE_URL: "https://ljzbyeulrttcrphdxyaf.supabase.co",
+        SUPABASE_KEY: "sb_publishable_cYwx_MbDt32sXHTlHKZUuQ_OuvB9dem",
+        BOT_USERNAME: "SytheraBot",
+      };
+
+      const REACTIONS = ["❤️", "🔥", "😂", "😮", "🥹"];
+      const SIGNED_TTL = 3600;
+      const UPLOAD_MAX_PX = 1080;
+      const CAPTION_MAX = 80;
+      const REPLY_MAX = 200;
+      const PAGE = 18;
+
+      const RTF = new Intl.RelativeTimeFormat("ru", { numeric: "auto" });
+      const RTF_UNITS = [
+        ["year", 31536000],
+        ["month", 2592000],
+        ["week", 604800],
+        ["day", 86400],
+        ["hour", 3600],
+        ["minute", 60],
+      ];
+      const PR = new Intl.PluralRules("ru");
+      const FRIEND_WORDS = { one: "друг", few: "друга", many: "друзей", other: "друзей" };
+
+      const safe = (fn) => {
+        try {
+          return fn();
+        } catch {
+          return undefined;
+        }
+      };
+
+      const uuid = () => crypto.randomUUID();
+
+      const clean = (text, max) =>
+        String(text ?? "")
+          .replace(/[\u0000-\u001F\u007F\u200B-\u200D\u2060\uFEFF]/g, "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, max);
+
+      const ago = (ts) => {
+        const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+        for (const [unit, sec] of RTF_UNITS)
+          if (diff >= sec) return RTF.format(-Math.floor(diff / sec), unit);
+        return "только что";
+      };
+
+      const haptic = {
+        impact: (style = "light") => safe(() => hapticFeedback.impactOccurred(style)),
+        notify: (type = "success") => safe(() => hapticFeedback.notificationOccurred(type)),
+        select: () => safe(() => hapticFeedback.selectionChanged()),
+      };
+
+      const toAuthor = (p) =>
+        p && {
+          id: p.id,
+          name: p.first_name || (p.username ? `@${p.username}` : "Без имени"),
+          photoUrl: p.photo_url,
+        };
+
+      Alpine.data("app", () => ({
+        status: "loading",
+        error: "",
+        supabase: null,
+        token: null,
+        me: null,
+        activeIndex: 0,
+        screen: "camera",
+        friendsOpen: false,
+        captured: null,
+        sending: false,
+        moments: [],
+        friends: [],
+        blocked: [],
+        feedLimit: PAGE,
+        feedHasMore: false,
+        loadingMore: false,
+        showOnboarding: false,
+        stream: null,
+        facing: "user",
+        torch: false,
+        torchSupported: false,
+        camStatus: "starting",
+        lastTap: 0,
+        lastTapId: null,
+        channel: null,
+        _starting: false,
+
+        async init() {
+          await this.boot();
+          try {
+            const { rawInitData, startParam } = this.launchContext();
+            const session = await this.authenticate(rawInitData, startParam);
+            this.token = session.token;
+            this.me = session.user;
+            this.supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, {
+              accessToken: async () => this.token,
+            });
+            await safe(() => this.supabase.realtime.setAuth());
+            this.status = "ready";
+            await this.loadBlocked();
+            await Promise.all([this.loadFeed(), this.loadFriends()]);
+            this.subscribe();
+            await this.$nextTick();
+            this.mountScroller();
+            this.watchChrome();
+            await this.startCamera();
+            this.syncChrome();
+            this.maybeOnboard();
+          } catch (e) {
+            this.error = String(e?.message ?? e);
+            this.status = "error";
+          }
+        },
+
+        destroy() {
+          this.stopCamera();
+          this.clearCaptured();
+          safe(() => this.channel && this.supabase?.removeChannel(this.channel));
+          this.channel = null;
+          this._scrollerCleanup?.();
+        },
+
+        launchContext() {
+          let rawInitData = "";
+          let startParam;
+          safe(() => (rawInitData = retrieveRawInitData() ?? ""));
+          safe(() => {
+            const lp = retrieveLaunchParams();
+            rawInitData ||= lp.tgWebAppData ?? "";
+            startParam = lp.tgWebAppStartParam;
+          });
+          return { rawInitData, startParam };
+        },
+
+        async authenticate(initData, startParam) {
+          const anon = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+          const { data, error } = await anon.functions.invoke("auth", {
+            body: { initData, startParam },
+          });
+          if (error) {
+            let message;
+            try {
+              message = (await error.context?.json())?.error;
+            } catch {
+              message = null;
+            }
+            throw new Error(message || "Не удалось войти");
+          }
+          return data;
+        },
+
+        async boot() {
+          if (this._booted) return;
+          this._booted = true;
+          safe(() => initTelegram());
+          safe(() => {
+            if (!miniApp.mount.isAvailable()) return;
+            miniApp.mount();
+            if (miniApp.setHeaderColor.isAvailable())
+              miniApp.setHeaderColor.supports("rgb")
+                ? miniApp.setHeaderColor("#000000")
+                : miniApp.setHeaderColor("bg_color");
+            if (miniApp.setBackgroundColor.isAvailable())
+              miniApp.setBackgroundColor("#000000");
+            if (miniApp.setBottomBarColor.isAvailable())
+              miniApp.setBottomBarColor("#000000");
+          });
+          if (safe(() => viewport.mount.isAvailable())) {
+            await safe(() => viewport.mount());
+            safe(() => viewport.expand.isAvailable() && viewport.expand());
+            await safe(
+              () => viewport.requestFullscreen.isAvailable() && viewport.requestFullscreen(),
+            );
+            this.bindSafeArea();
+          }
+          safe(() => {
+            if (!swipeBehavior.mount.isAvailable()) return;
+            swipeBehavior.mount();
+            if (swipeBehavior.disableVertical.isAvailable()) swipeBehavior.disableVertical();
+          });
+          safe(() => closingBehavior.mount.isAvailable() && closingBehavior.mount());
+          safe(() => {
+            if (!backButton.mount.isAvailable()) return;
+            backButton.mount();
+            if (backButton.onClick.isAvailable()) backButton.onClick(() => this.onBack());
+          });
+          safe(() => window.Telegram.WebApp.lockOrientation());
+        },
+
+        bindSafeArea() {
+          const root = document.documentElement.style;
+          const apply = () => {
+            const s = safe(() => viewport.safeAreaInsets()) ?? {};
+            const c = safe(() => viewport.contentSafeAreaInsets()) ?? {};
+            const px = (a, b) => `${(a ?? 0) + (b ?? 0)}px`;
+            root.setProperty("--safe-top", px(s.top, c.top));
+            root.setProperty("--safe-top-device", px(s.top, 0));
+            root.setProperty("--safe-bottom", px(s.bottom, c.bottom));
+            root.setProperty("--safe-left", px(s.left, c.left));
+            root.setProperty("--safe-right", px(s.right, c.right));
+          };
+          apply();
+          safe(() => viewport.safeAreaInsets.sub(apply));
+          safe(() => viewport.contentSafeAreaInsets.sub(apply));
+        },
+
+        onBack() {
+          if (this.friendsOpen) return this.closeFriends();
+          if (this.captured) return this.retake();
+          if (this.screen === "feed") return this.toCamera();
+        },
+        syncBack() {
+          safe(() => {
+            const visible = this.friendsOpen || !!this.captured || this.screen === "feed";
+            if (visible && backButton.show.isAvailable()) backButton.show();
+            else if (backButton.hide.isAvailable()) backButton.hide();
+          });
+        },
+        syncChrome() {
+          safe(() => {
+            if (!closingBehavior.enableConfirmation.isAvailable()) return;
+            this.captured
+              ? closingBehavior.enableConfirmation()
+              : closingBehavior.disableConfirmation();
+          });
+        },
+
+        mountScroller() {
+          const el = this.$refs.scroller;
+          if (!el) return;
+          this._scrollerCleanup?.();
+          let ticking = false;
+          const onScroll = () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+              ticking = false;
+              this.syncActive();
+            });
+          };
+          const onEnd = () => this.syncActive();
+          el.addEventListener("scroll", onScroll, { passive: true });
+          el.addEventListener("scrollend", onEnd);
+          this._scrollerCleanup = () => {
+            el.removeEventListener("scroll", onScroll);
+            el.removeEventListener("scrollend", onEnd);
+          };
+        },
+        syncActive() {
+          const el = this.$refs.scroller;
+          if (!el || !el.clientHeight) return;
+          const idx = Math.max(0, Math.round(el.scrollTop / el.clientHeight));
+          if (idx !== this.activeIndex) {
+            this.activeIndex = idx;
+            haptic.select();
+            const next = idx === 0 ? "camera" : "feed";
+            if (next !== this.screen) {
+              this.screen = next;
+              next === "feed" ? this.stopCamera() : this.startCamera();
+            }
+          }
+          if (this.screen === "feed" && this.moments.length && idx >= this.moments.length - 1)
+            this.loadMore();
+        },
+        watchChrome() {
+          this.$watch("captured", () => this.syncBack());
+          this.$watch("screen", () => this.syncBack());
+          this.$watch("friendsOpen", (open) => {
+            this.syncBack();
+            this.toggleDialog("friendsDialog", open);
+          });
+          this.$watch("showOnboarding", (open) => this.toggleDialog("onboardDialog", open));
+          this.syncBack();
+        },
+        toggleDialog(ref, open) {
+          const d = this.$refs[ref];
+          if (!d) return;
+          clearTimeout(d._closeTimer);
+          if (open) {
+            if (!d.open) safe(() => d.showModal());
+            void d.offsetWidth;
+            d.classList.add("dialog-shown");
+          } else {
+            d.classList.remove("dialog-shown");
+            d._closeTimer = setTimeout(() => safe(() => d.open && d.close()), 360);
+          }
+        },
+        toCamera() {
+          if (this.captured) return;
+          this.$refs.scroller?.scrollTo({ top: 0, behavior: "smooth" });
+        },
+        toFeed() {
+          if (this.captured) return;
+          const el = this.$refs.scroller;
+          el?.scrollTo({ top: el.clientHeight, behavior: "smooth" });
+        },
+
+        openFriends() {
+          haptic.select();
+          this.friendsOpen = true;
+        },
+        closeFriends() {
+          this.friendsOpen = false;
+        },
+
+        async loadFeed() {
+          const { data, error } = await this.supabase
+            .from("moments")
+            .select(
+              "id, caption, image_path, created_at, author:profiles!moments_author_id_fkey(id, first_name, username, photo_url), reactions(emoji, user_id)",
+            )
+            .order("created_at", { ascending: false })
+            .limit(this.feedLimit);
+          if (error) return;
+
+          this.feedHasMore = data.length >= this.feedLimit;
+          const prev = new Map(this.moments.map((m) => [m.id, m]));
+          const fresh = data.filter((m) => !prev.get(m.id)?.url);
+          const signed = await this.signUrls(fresh.map((m) => m.image_path));
+          const signMap = new Map(fresh.map((m, i) => [m.id, signed[i]]));
+          this.moments = data.map((m) => {
+            const reactions = {};
+            let reacted = null;
+            for (const r of m.reactions ?? []) {
+              reactions[r.emoji] = (reactions[r.emoji] ?? 0) + 1;
+              if (r.user_id === this.me.id) reacted = r.emoji;
+            }
+            const was = prev.get(m.id);
+            const keepReact = was?._reactBusy;
+            return {
+              id: m.id,
+              caption: m.caption,
+              path: m.image_path,
+              url: was?.url ?? signMap.get(m.id) ?? null,
+              loaded: was?.loaded ?? false,
+              createdAt: m.created_at,
+              author: toAuthor(m.author),
+              mine: m.author?.id === this.me.id,
+              reactions: keepReact ? was.reactions : reactions,
+              reacted: keepReact ? was.reacted : reacted,
+              _reactBusy: was?._reactBusy ?? false,
+              editing: was?.editing ?? false,
+              draft: was?.draft ?? "",
+              reply: was?.reply ?? "",
+              _burst: false,
+            };
+          });
+        },
+
+        async reSign(m) {
+          if (m._resigning || (m._reTries ?? 0) > 2) return;
+          m._resigning = true;
+          m._reTries = (m._reTries ?? 0) + 1;
+          const [url] = await this.signUrls([m.path]);
+          if (url) {
+            m.loaded = false;
+            m.url = url;
+          }
+          m._resigning = false;
+        },
+
+        async loadMore() {
+          if (this.loadingMore || !this.feedHasMore) return;
+          this.loadingMore = true;
+          this.feedLimit += PAGE;
+          await this.loadFeed();
+          this.loadingMore = false;
+        },
+
+        async signUrls(paths) {
+          if (!paths.length) return [];
+          const { data } = await this.supabase.storage
+            .from("moments")
+            .createSignedUrls(paths, SIGNED_TTL);
+          return (data ?? []).map((d) => d?.signedUrl ?? null);
+        },
+
+        async loadBlocked() {
+          const { data } = await this.supabase
+            .from("blocks")
+            .select("blocked:profiles!blocks_blocked_id_fkey(id, first_name, username, photo_url)")
+            .eq("blocker_id", this.me.id);
+          this.blocked = (data ?? []).map((b) => toAuthor(b.blocked)).filter(Boolean);
+        },
+
+        async loadFriends() {
+          const { data } = await this.supabase
+            .from("friendships")
+            .select("friend:profiles!friendships_friend_id_fkey(id, first_name, username, photo_url)")
+            .eq("user_id", this.me.id);
+          this.friends = (data ?? []).map((f) => toAuthor(f.friend)).filter(Boolean);
+        },
+
+        subscribe() {
+          safe(() => {
+            if (this.channel) this.supabase.removeChannel(this.channel);
+            this.channel = this.supabase
+              .channel("sythera")
+              .on(
+                "postgres_changes",
+                { event: "INSERT", schema: "public", table: "moments" },
+                () => {
+                  haptic.notify("success");
+                  this.scheduleFeedReload();
+                },
+              )
+              .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "reactions" },
+                () => this.scheduleFeedReload(),
+              )
+              .subscribe();
+          });
+        },
+        scheduleFeedReload() {
+          clearTimeout(this._feedTimer);
+          this._feedTimer = setTimeout(() => this.loadFeed(), 250);
+        },
+
+        videoTrack() {
+          return this.stream?.getVideoTracks()[0] ?? null;
+        },
+
+        async startCamera() {
+          if (this.screen !== "camera" || this.captured || this.stream || this._starting) return;
+          this._starting = true;
+          this.camStatus = "starting";
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: {
+                facingMode: this.facing,
+                width: { ideal: 1440 },
+                height: { ideal: 1440 },
+              },
+              audio: false,
+            });
+            if (this.screen !== "camera" || this.captured) {
+              stream.getTracks().forEach((t) => t.stop());
+              return;
+            }
+            this.stream = stream;
+            await this.$nextTick();
+            const v = this.$refs.video;
+            if (v) {
+              v.muted = true;
+              v.defaultMuted = true;
+              v.playsInline = true;
+              v.srcObject = this.stream;
+              await v.play().catch(() => {});
+              this.camStatus = "live";
+            }
+            this.refreshTorch();
+          } catch {
+            this.camStatus = "denied";
+          } finally {
+            this._starting = false;
+          }
+        },
+        stopCamera() {
+          this.disableTorch();
+          this.stream?.getTracks().forEach((t) => t.stop());
+          this.stream = null;
+          if (this.camStatus === "live") this.camStatus = "idle";
+          const v = this.$refs.video;
+          if (v) v.srcObject = null;
+        },
+        async flipCamera() {
+          haptic.impact();
+          this.facing = this.facing === "user" ? "environment" : "user";
+          this.stopCamera();
+          await this.startCamera();
+        },
+        refreshTorch() {
+          this.torchSupported = !!safe(() => this.videoTrack()?.getCapabilities?.().torch);
+          if (!this.torchSupported) this.torch = false;
+        },
+        async toggleTorch() {
+          if (!this.torchSupported) return this.notify("Вспышка недоступна");
+          const track = this.videoTrack();
+          if (!track) return;
+          const next = !this.torch;
+          try {
+            await track.applyConstraints({ advanced: [{ torch: next }] });
+            this.torch = next;
+            haptic.impact();
+          } catch {
+            this.torch = false;
+            this.notify("Не удалось включить вспышку");
+          }
+        },
+        disableTorch() {
+          if (!this.torch) return;
+          safe(() => this.videoTrack()?.applyConstraints({ advanced: [{ torch: false }] }));
+          this.torch = false;
+        },
+
+        async capture() {
+          const v = this.$refs.video;
+          if (!v || !this.stream) return;
+          haptic.impact("medium");
+          const size = Math.min(v.videoWidth, v.videoHeight);
+          const canvas = document.createElement("canvas");
+          canvas.width = canvas.height = size;
+          const ctx = canvas.getContext("2d");
+          if (this.facing === "user") {
+            ctx.translate(size, 0);
+            ctx.scale(-1, 1);
+          }
+          ctx.drawImage(
+            v,
+            (v.videoWidth - size) / 2,
+            (v.videoHeight - size) / 2,
+            size,
+            size,
+            0,
+            0,
+            size,
+            size,
+          );
+          const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.92));
+          this.captured = { blob, url: URL.createObjectURL(blob), caption: "" };
+          this.stopCamera();
+          this.syncChrome();
+        },
+        clearCaptured() {
+          if (this.captured?.url) URL.revokeObjectURL(this.captured.url);
+          this.captured = null;
+        },
+        retake() {
+          this.clearCaptured();
+          this.startCamera();
+          this.syncChrome();
+        },
+
+        async resizeForUpload(blob, max = UPLOAD_MAX_PX) {
+          try {
+            const bitmap = await createImageBitmap(blob);
+            const scale = Math.min(1, max / Math.max(bitmap.width, bitmap.height));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.round(bitmap.width * scale);
+            canvas.height = Math.round(bitmap.height * scale);
+            const ctx = canvas.getContext("2d");
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
+            ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+            bitmap.close?.();
+            return await new Promise((r) => canvas.toBlob(r, "image/jpeg", 0.85));
+          } catch {
+            return blob;
+          }
+        },
+
+        async send() {
+          if (!this.captured || this.sending) return;
+          this.sending = true;
+          this.syncChrome();
+          try {
+            const blob = await this.resizeForUpload(this.captured.blob);
+            const path = `${this.me.id}/${uuid()}.jpg`;
+            const up = await this.supabase.storage
+              .from("moments")
+              .upload(path, blob, { contentType: "image/jpeg" });
+            if (up.error) throw up.error;
+            const ins = await this.supabase.from("moments").insert({
+              author_id: this.me.id,
+              image_path: path,
+              caption: clean(this.captured.caption, CAPTION_MAX) || null,
+            });
+            if (ins.error) throw ins.error;
+            haptic.notify("success");
+            this.clearCaptured();
+            this.syncChrome();
+            await this.loadFeed();
+            this.toFeed();
+            this.notify("Опубликовано");
+          } catch {
+            haptic.notify("error");
+            this.notify("Не удалось опубликовать");
+          } finally {
+            this.sending = false;
+            this.syncChrome();
+          }
+        },
+
+        async remove(moment) {
+          if (!(await this.confirm("Удалить момент?", "Это действие нельзя отменить."))) return;
+          const { error } = await this.supabase.from("moments").delete().eq("id", moment.id);
+          if (error) return this.notify("Не удалось удалить");
+          safe(() => this.supabase.storage.from("moments").remove([moment.path]));
+          haptic.notify("warning");
+          this.moments = this.moments.filter((m) => m.id !== moment.id);
+        },
+
+        startEdit(moment) {
+          moment.draft = moment.caption ?? "";
+          moment.editing = true;
+        },
+        async saveEdit(moment) {
+          const caption = clean(moment.draft, CAPTION_MAX) || null;
+          moment.editing = false;
+          if (caption === (moment.caption ?? null)) return;
+          const { error } = await this.supabase
+            .from("moments")
+            .update({ caption })
+            .eq("id", moment.id);
+          if (error) return this.notify("Не удалось сохранить");
+          moment.caption = caption;
+          haptic.notify("success");
+        },
+
+        share(moment) {
+          haptic.impact();
+          if (!shareURL.isAvailable()) return this.notify("Недоступно в этой версии Telegram");
+          const link = `https://t.me/${CONFIG.BOT_USERNAME}?startapp=${this.me.id}`;
+          const text = moment.caption ? `${moment.caption} — в Sythera` : "Мой момент в Sythera";
+          safe(() => shareURL(link, text));
+        },
+
+        async block(moment) {
+          const author = moment.author;
+          if (!author || author.id === this.me.id) return;
+          if (
+            !(await this.confirm(
+              "Заблокировать?",
+              `Вы больше не увидите моменты ${author.name}.`,
+              "Заблокировать",
+            ))
+          )
+            return;
+          const { error } = await this.supabase
+            .from("blocks")
+            .upsert(
+              { blocker_id: this.me.id, blocked_id: author.id },
+              { onConflict: "blocker_id,blocked_id" },
+            );
+          if (error) return this.notify("Не удалось заблокировать");
+          haptic.notify("warning");
+          this.blocked = [...this.blocked.filter((b) => b.id !== author.id), author];
+          this.moments = this.moments.filter((m) => m.author?.id !== author.id);
+        },
+        async unblock(user) {
+          const { error } = await this.supabase
+            .from("blocks")
+            .delete()
+            .eq("blocker_id", this.me.id)
+            .eq("blocked_id", user.id);
+          if (error) return this.notify("Не удалось разблокировать");
+          haptic.select();
+          this.blocked = this.blocked.filter((b) => b.id !== user.id);
+          this.loadFeed();
+        },
+
+        async maybeOnboard() {
+          let seen;
+          if (cloudStorage.getItem.isAvailable())
+            seen = await cloudStorage.getItem("onboarded").catch(() => null);
+          this.showOnboarding = !seen;
+        },
+        finishOnboarding() {
+          haptic.impact();
+          this.showOnboarding = false;
+          if (cloudStorage.setItem.isAvailable())
+            cloudStorage.setItem("onboarded", "1").catch(() => {});
+        },
+
+        async react(moment, emoji) {
+          haptic.impact();
+          const prev = { reacted: moment.reacted, counts: { ...moment.reactions } };
+          const next = moment.reacted === emoji ? null : emoji;
+          if (moment.reacted)
+            moment.reactions[moment.reacted] = Math.max(0, (moment.reactions[moment.reacted] ?? 1) - 1);
+          if (next) moment.reactions[next] = (moment.reactions[next] ?? 0) + 1;
+          moment.reacted = next;
+          moment._reactBusy = true;
+          const { error } = next
+            ? await this.supabase
+                .from("reactions")
+                .upsert(
+                  { moment_id: moment.id, user_id: this.me.id, emoji: next },
+                  { onConflict: "moment_id,user_id" },
+                )
+            : await this.supabase
+                .from("reactions")
+                .delete()
+                .eq("moment_id", moment.id)
+                .eq("user_id", this.me.id);
+          moment._reactBusy = false;
+          if (error) {
+            moment.reacted = prev.reacted;
+            moment.reactions = prev.counts;
+            haptic.notify("error");
+          }
+        },
+
+        onImageTap(moment) {
+          const now = Date.now();
+          const isDouble = now - this.lastTap < 300 && this.lastTapId === moment.id;
+          if (isDouble) {
+            if (moment.reacted !== "❤️") this.react(moment, "❤️");
+            this.burstHeart(moment);
+            this.lastTap = 0;
+            this.lastTapId = null;
+            return;
+          }
+          this.lastTap = now;
+          this.lastTapId = moment.id;
+        },
+        burstHeart(moment) {
+          moment._burst = false;
+          requestAnimationFrame(() => {
+            moment._burst = true;
+            clearTimeout(moment._burstTimer);
+            moment._burstTimer = setTimeout(() => (moment._burst = false), 700);
+          });
+        },
+
+        async sendReply(moment) {
+          const text = clean(moment.reply, REPLY_MAX);
+          if (!text) return;
+          try {
+            await this.supabase.functions.invoke("reply", {
+              body: { momentId: moment.id, text },
+            });
+            moment.reply = "";
+            haptic.notify("success");
+            this.notify("Отправлено");
+          } catch {
+            haptic.notify("error");
+            this.notify("Не удалось отправить");
+          }
+        },
+
+        async toggleNotify() {
+          const next = !this.me.notify;
+          if (next) safe(() => requestWriteAccess.isAvailable() && requestWriteAccess());
+          const { error } = await this.supabase
+            .from("profiles")
+            .update({ notify: next })
+            .eq("id", this.me.id);
+          if (!error) this.me = { ...this.me, notify: next };
+          haptic.select();
+        },
+
+        invite() {
+          haptic.impact();
+          this.closeFriends();
+          if (!shareURL.isAvailable()) return this.notify("Недоступно в этой версии Telegram");
+          const link = `https://t.me/${CONFIG.BOT_USERNAME}?startapp=${this.me.id}`;
+          safe(() => shareURL(link, "Присоединяйтесь ко мне в Sythera"));
+        },
+
+        openProfile() {
+          haptic.impact();
+          if (!this.me.username)
+            return this.notify("У вас не задано имя пользователя в Telegram");
+          if (!openTelegramLink.isAvailable())
+            return this.notify("Недоступно в этой версии Telegram");
+          safe(() => openTelegramLink(`https://t.me/${this.me.username}`));
+        },
+
+        async removeFriend(friend) {
+          if (
+            !(await this.confirm(
+              "Удалить из друзей?",
+              `${friend.name} больше не увидит ваши моменты.`,
+            ))
+          )
+            return;
+          const me = this.me.id;
+          const { error } = await this.supabase
+            .from("friendships")
+            .delete()
+            .or(
+              `and(user_id.eq.${me},friend_id.eq.${friend.id}),and(user_id.eq.${friend.id},friend_id.eq.${me})`,
+            );
+          if (error) return this.notify("Не удалось удалить");
+          haptic.notify("warning");
+          this.friends = this.friends.filter((f) => f.id !== friend.id);
+          this.loadFeed();
+        },
+
+        async save(moment) {
+          haptic.impact();
+          if (!downloadFile.isAvailable()) return this.notify("Недоступно в этой версии Telegram");
+          try {
+            await downloadFile(moment.url, `sythera-${moment.id}.jpg`);
+            haptic.notify("success");
+          } catch {
+            this.notify("Не удалось сохранить");
+          }
+        },
+
+        notify(text) {
+          window.dispatchEvent(new CustomEvent("notify", { detail: { text } }));
+        },
+        async confirm(title, message, okText = "Удалить") {
+          if (!popup.open.isAvailable()) return false;
+          try {
+            const id = await popup.open({
+              title,
+              message,
+              buttons: [
+                { id: "ok", type: "destructive", text: okText },
+                { id: "cancel", type: "cancel" },
+              ],
+            });
+            return id === "ok";
+          } catch {
+            return false;
+          }
+        },
+
+        get friendsLabel() {
+          const n = this.friends.length;
+          return `${n} ${FRIEND_WORDS[PR.select(n)]}`;
+        },
+        ago,
+        initials: (p) => (p?.name || "?").trim().charAt(0).toUpperCase(),
+        reactionList: REACTIONS,
+        captionMax: CAPTION_MAX,
+        replyMax: REPLY_MAX,
+      }));
+
+      Alpine.data("toasts", () => ({
+        items: [],
+        add(detail) {
+          const id = Date.now() + Math.random();
+          this.items.push({ id, text: detail.text });
+          setTimeout(() => this.remove(id), 2600);
+        },
+        remove(id) {
+          this.items = this.items.filter((t) => t.id !== id);
+        },
+      }));
+
+      window.Alpine = Alpine;
+      Alpine.start();
+    </script>
+  </head>
+
+  <body x-data="app" class="h-svh overflow-hidden bg-bg font-sans text-fg">
+    <div x-show="status === 'loading'" class="fixed inset-0 grid place-items-center">
+      <p class="text-lg font-semibold tracking-[-0.02em] text-fg motion-safe:animate-pulse">Sythera</p>
+    </div>
+
+    <div
+      x-show="status === 'error'"
+      x-cloak
+      class="safe grid h-svh place-items-center px-8 text-center"
+    >
+      <div class="max-w-sm motion-safe:animate-rise">
+        <h1 class="text-2xl font-semibold tracking-tight">Что-то пошло не так</h1>
+        <p class="mt-3 text-[15px] leading-relaxed text-muted" x-text="error"></p>
+        <button
+          @click="status = 'loading'; init()"
+          class="mt-6 rounded-full bg-accent px-6 py-3 text-[15px] font-medium text-on-accent transition active:scale-95"
+        >
+          Повторить
+        </button>
+      </div>
+    </div>
+
+    <div x-show="status === 'ready'" x-cloak class="fixed inset-0">
+      <div
+        x-ref="scroller"
+        class="no-scrollbar absolute inset-0 snap-y snap-mandatory overscroll-y-contain"
+        :class="captured || friendsOpen ? 'overflow-hidden' : 'overflow-y-auto'"
+      >
+        <div class="h-full w-full shrink-0 snap-start snap-always">
+          <section class="flex h-full flex-col items-center justify-center gap-6 px-5">
+              <div
+                class="relative aspect-square max-h-[58svh] w-full max-w-[420px] shrink overflow-hidden rounded-[2.25rem] border border-white/10 bg-white/5"
+              >
+                <video
+                  x-show="!captured && camStatus === 'live'"
+                  x-ref="video"
+                  playsinline
+                  muted
+                  disablepictureinpicture
+                  disableremoteplayback
+                  controlslist="nodownload nofullscreen noplaybackrate noremoteplayback"
+                  @playing="stream && (camStatus = 'live')"
+                  @loadedmetadata="$el.play().catch(() => {})"
+                  @pause="stream && $el.play().catch(() => {})"
+                  class="h-full w-full object-cover"
+                  :class="facing === 'user' && '-scale-x-100'"
+                ></video>
+                <img
+                  x-show="captured"
+                  x-cloak
+                  x-transition:enter="animate-shot"
+                  :src="captured?.url"
+                  alt=""
+                  class="h-full w-full object-cover"
+                />
+                <template x-if="captured">
+                  <div class="absolute inset-x-5 bottom-5">
+                    <input
+                      x-model="captured.caption"
+                      :maxlength="captionMax"
+                      enterkeyhint="done"
+                      placeholder="Добавьте подпись"
+                      class="glass-dark w-full rounded-full border border-white/15 py-3 pr-14 pl-14 text-center text-sm text-fg [text-shadow:0_1px_2px_rgba(0,0,0,0.6)] placeholder:text-white/60 focus:outline-none"
+                    />
+                    <span
+                      x-show="captured.caption?.length"
+                      class="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[11px] tabular-nums text-muted"
+                      x-text="(captured.caption?.length || 0) + '/' + captionMax"
+                    ></span>
+                  </div>
+                </template>
+                <div
+                  x-show="!captured && camStatus === 'denied'"
+                  x-cloak
+                  class="absolute inset-0 grid place-items-center px-8 text-center"
+                >
+                  <div>
+                    <p class="text-[15px] font-medium">Нет доступа к камере</p>
+                    <p class="mt-1 text-sm text-muted">
+                      Разрешите доступ к камере в настройках Telegram.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                x-show="!captured"
+                class="flex w-full max-w-[420px] items-center justify-between px-2"
+              >
+                <button
+                  @click="flipCamera()"
+                  aria-label="Сменить камеру"
+                  class="glass grid size-14 place-items-center rounded-full border border-white/10 text-fg transition active:scale-90"
+                >
+                  <svg
+                    class="size-6"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M20 9a8 8 0 0 0-14-3M4 15a8 8 0 0 0 14 3" />
+                    <path d="M4 6v3h3M20 18v-3h-3" />
+                  </svg>
+                </button>
+                <button
+                  @click="capture()"
+                  :disabled="camStatus !== 'live'"
+                  aria-label="Снимок"
+                  class="grid size-[4.75rem] place-items-center rounded-full ring-[3px] ring-fg/80 transition active:scale-90 disabled:opacity-40"
+                >
+                  <span class="size-[3.75rem] rounded-full bg-fg"></span>
+                </button>
+                <div class="grid size-14 place-items-center">
+                  <button
+                    x-show="torchSupported"
+                    @click="toggleTorch()"
+                    aria-label="Вспышка"
+                    class="glass grid size-14 place-items-center rounded-full border text-fg transition active:scale-90"
+                    :class="torch ? 'border-white/30 bg-white/15' : 'border-white/10'"
+                  >
+                    <svg
+                      class="size-6"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M13 2 4.5 13.5H11l-1 8.5L18.5 10.5H12z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <div
+                x-show="captured"
+                x-cloak
+                class="flex w-full max-w-[420px] items-center justify-between px-2"
+              >
+                <button
+                  @click="retake()"
+                  aria-label="Переснять"
+                  class="glass grid size-14 place-items-center rounded-full border border-white/10 text-fg transition active:scale-90"
+                >
+                  <svg
+                    class="size-6"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+                    <path d="M3 3v5h5" />
+                  </svg>
+                </button>
+                <button
+                  @click="send()"
+                  :disabled="sending"
+                  aria-label="Опубликовать"
+                  class="grid size-[4.75rem] place-items-center rounded-full bg-accent text-on-accent transition active:scale-90 disabled:opacity-50"
+                >
+                  <svg
+                    x-show="!sending"
+                    class="size-8"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M5 12l14-7-7 14-2-5z" />
+                  </svg>
+                  <span
+                    x-show="sending"
+                    x-cloak
+                    class="size-6 rounded-full border-2 border-on-accent/30 border-t-on-accent motion-safe:animate-spin-slow"
+                  ></span>
+                </button>
+                <div class="size-14"></div>
+              </div>
+            </section>
+          </div>
+
+          <template x-if="!moments.length">
+            <div class="flex h-full w-full shrink-0 snap-start snap-always flex-col items-center justify-center px-8 text-center">
+              <div class="mx-auto max-w-xs">
+                <p class="text-[15px] font-medium">Здесь появятся моменты</p>
+                <p class="mt-1 text-sm text-muted">
+                  Сделайте первый снимок, чтобы поделиться им с друзьями.
+                </p>
+              </div>
+            </div>
+          </template>
+
+          <template x-for="m in moments" :key="m.id">
+            <div class="flex h-full w-full shrink-0 snap-start snap-always flex-col justify-center px-5">
+              <div class="mx-auto w-full max-w-[420px]">
+                <div
+                  class="relative overflow-hidden rounded-[1.75rem] border border-white/10 bg-white/5"
+                  @click="onImageTap(m)"
+                >
+                  <img
+                    :src="m.url"
+                    alt=""
+                    decoding="async"
+                    @load="m.loaded = true"
+                    @error="reSign(m)"
+                    class="mx-auto aspect-square max-h-[52svh] w-full object-cover transition-opacity duration-500 motion-reduce:transition-none"
+                    :class="m.loaded ? 'opacity-100' : 'opacity-0'"
+                  />
+                  <span
+                    x-show="m._burst"
+                    class="pointer-events-none absolute inset-0 grid place-items-center text-7xl motion-safe:animate-heart motion-reduce:hidden [text-shadow:0_4px_16px_rgba(0,0,0,0.45)]"
+                    aria-hidden="true"
+                    >❤️</span
+                  >
+                  <p
+                    x-show="m.caption && !m.editing"
+                    class="glass-dark absolute inset-x-4 bottom-4 line-clamp-3 rounded-2xl border border-white/15 px-4 py-2.5 text-center text-sm break-words [text-shadow:0_1px_2px_rgba(0,0,0,0.6)]"
+                    x-text="m.caption"
+                  ></p>
+                  <div
+                    x-show="m.editing"
+                    x-cloak
+                    @click.stop
+                    class="absolute inset-x-4 bottom-4 flex items-center gap-2"
+                  >
+                    <input
+                      x-model="m.draft"
+                      :maxlength="captionMax"
+                      enterkeyhint="done"
+                      @keydown.enter="saveEdit(m)"
+                      placeholder="Подпись"
+                      class="glass-dark min-w-0 flex-1 rounded-full border border-white/15 px-4 py-2.5 text-center text-sm text-fg [text-shadow:0_1px_2px_rgba(0,0,0,0.6)] placeholder:text-white/60 focus:outline-none"
+                    />
+                    <button
+                      @click="saveEdit(m)"
+                      class="glass-dark grid size-10 shrink-0 place-items-center rounded-full border border-white/15 text-fg transition active:scale-90"
+                      aria-label="Сохранить подпись"
+                    >
+                      <svg
+                        class="size-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M20 6 9 17l-5-5" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="mt-3 flex items-center justify-between px-1">
+                  <div class="flex min-w-0 items-center gap-2">
+                    <span
+                      class="relative grid size-6 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-[11px] font-semibold text-fg"
+                    >
+                      <img
+                        x-show="m.author.photoUrl"
+                        :src="m.author.photoUrl"
+                        @error="m.author.photoUrl = null"
+                        alt=""
+                        class="absolute inset-0 h-full w-full object-cover"
+                      />
+                      <span x-show="!m.author.photoUrl" x-text="initials(m.author)"></span>
+                    </span>
+                    <span class="truncate text-sm font-medium" x-text="m.mine ? 'Вы' : m.author.name"></span>
+                    <span class="shrink-0 text-xs text-muted" x-text="ago(m.createdAt)"></span>
+                  </div>
+
+                  <div
+                    x-data="{ open: false }"
+                    @keydown.escape.window="open = false"
+                    class="relative shrink-0"
+                  >
+                    <button
+                      @click.stop="open = !open"
+                      class="grid size-8 place-items-center rounded-full text-muted transition active:scale-90"
+                      aria-label="Ещё"
+                      :aria-expanded="open"
+                    >
+                      <svg class="size-5" viewBox="0 0 24 24" fill="currentColor">
+                        <circle cx="5" cy="12" r="1.6" />
+                        <circle cx="12" cy="12" r="1.6" />
+                        <circle cx="19" cy="12" r="1.6" />
+                      </svg>
+                    </button>
+                    <div
+                      x-show="open"
+                      x-cloak
+                      @click.away="open = false"
+                      x-transition:enter="transition ease-out duration-150"
+                      x-transition:enter-start="opacity-0 scale-95"
+                      x-transition:enter-end="opacity-100 scale-100"
+                      x-transition:leave="transition ease-in duration-100"
+                      x-transition:leave-start="opacity-100 scale-100"
+                      x-transition:leave-end="opacity-0 scale-95"
+                      class="glass-dark absolute right-0 z-30 mt-1 w-48 origin-top-right overflow-hidden rounded-2xl border border-white/10 py-1 text-sm shadow-2xl shadow-black/50"
+                    >
+                      <button
+                        @click="save(m); open = false"
+                        class="block w-full px-4 py-2.5 text-left transition active:bg-white/10"
+                      >
+                        Сохранить
+                      </button>
+                      <button
+                        @click="share(m); open = false"
+                        class="block w-full px-4 py-2.5 text-left transition active:bg-white/10"
+                      >
+                        Поделиться
+                      </button>
+                      <template x-if="m.mine">
+                        <div>
+                          <button
+                            @click="startEdit(m); open = false"
+                            class="block w-full px-4 py-2.5 text-left transition active:bg-white/10"
+                          >
+                            Изменить подпись
+                          </button>
+                          <button
+                            @click="remove(m); open = false"
+                            class="block w-full px-4 py-2.5 text-left text-danger transition active:bg-white/10"
+                          >
+                            Удалить
+                          </button>
+                        </div>
+                      </template>
+                      <template x-if="!m.mine">
+                        <button
+                          @click="block(m); open = false"
+                          class="block w-full px-4 py-2.5 text-left text-danger transition active:bg-white/10"
+                        >
+                          Заблокировать
+                        </button>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-2.5 flex flex-wrap items-center gap-1.5 px-1">
+                  <template x-for="e in reactionList" :key="e">
+                    <button
+                      @click="react(m, e)"
+                      class="flex items-center gap-1 rounded-full px-2.5 py-1 text-base transition active:scale-90"
+                      :class="m.reacted === e ? 'border border-white/15 bg-white/10' : 'opacity-50 hover:opacity-80'"
+                    >
+                      <span x-text="e"></span>
+                      <span x-show="m.reactions[e]" class="text-xs font-medium" x-text="m.reactions[e]"></span>
+                    </button>
+                  </template>
+                </div>
+
+                <div x-show="!m.mine" class="mt-3 px-1 pb-2">
+                  <div class="flex items-center gap-2">
+                    <div class="relative min-w-0 flex-1">
+                      <input
+                        x-model="m.reply"
+                        @keydown.enter="sendReply(m)"
+                        :maxlength="replyMax"
+                        enterkeyhint="send"
+                        placeholder="Сообщение"
+                        class="glass w-full rounded-full border border-white/10 py-2.5 pr-14 pl-4 text-sm text-fg placeholder:text-muted focus:outline-none"
+                      />
+                      <span
+                        x-show="m.reply?.length"
+                        class="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[11px] tabular-nums text-muted"
+                        x-text="(m.reply?.length || 0) + '/' + replyMax"
+                      ></span>
+                    </div>
+                    <button
+                      @click="sendReply(m)"
+                      :disabled="!m.reply?.trim()"
+                      class="grid size-10 shrink-0 place-items-center rounded-full bg-accent text-on-accent transition active:scale-90 disabled:opacity-40"
+                      aria-label="Отправить"
+                    >
+                      <svg
+                        class="size-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <path d="M5 12l14-7-7 14-2-5z" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+      </div>
+
+      <div
+        x-show="!captured"
+        class="absolute top-1/2 right-[calc(0.75rem+var(--safe-right,env(safe-area-inset-right)))] z-20 flex -translate-y-1/2 flex-col items-center gap-3"
+      >
+        <button
+          @click="toCamera()"
+          aria-label="Камера"
+          class="grid place-items-center transition active:scale-90"
+          :class="screen === 'camera' ? 'text-fg' : 'text-white/35'"
+        >
+          <svg
+            class="size-[18px]"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.8"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+            <circle cx="12" cy="13" r="3.5" />
+          </svg>
+        </button>
+        <button
+          @click="toFeed()"
+          aria-label="Лента"
+          class="w-1.5 rounded-full transition-all"
+          :class="screen === 'feed' ? 'h-6 bg-fg' : 'h-1.5 bg-white/35'"
+        ></button>
+      </div>
+
+      <div
+        class="pointer-events-none absolute inset-x-0 z-20 flex -translate-y-1/2 justify-center"
+        style="top: calc((var(--safe-top-device, env(safe-area-inset-top)) + var(--safe-top, env(safe-area-inset-top))) / 2)"
+      >
+        <span
+          class="text-[15px] font-semibold tracking-[-0.02em] text-fg [text-shadow:0_1px_3px_rgba(0,0,0,0.55)]"
+          >Sythera</span
+        >
+      </div>
+
+      <footer
+        x-show="!captured"
+        class="safe-b safe-x pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center"
+      >
+        <button
+          @click="openFriends()"
+          class="glass pointer-events-auto mb-1.5 flex items-center gap-2 rounded-full border border-white/10 py-1 pr-3 pl-1 transition active:scale-95"
+        >
+          <span
+            class="relative grid size-8 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-xs font-semibold text-fg"
+          >
+            <img
+              x-show="me.photoUrl"
+              :src="me.photoUrl"
+              @error="me.photoUrl = null"
+              alt=""
+              class="absolute inset-0 h-full w-full object-cover"
+            />
+            <span x-show="!me.photoUrl" x-text="initials(me)"></span>
+          </span>
+          <span class="whitespace-nowrap text-sm font-medium" x-text="friendsLabel"></span>
+        </button>
+      </footer>
+    </div>
+
+    <dialog
+      x-ref="friendsDialog"
+      @close="closeFriends()"
+      @cancel.prevent="closeFriends()"
+      @click="$event.target === $el && closeFriends()"
+      aria-label="Профиль и друзья"
+    >
+      <div
+        class="sheet-panel glass safe-b safe-x absolute inset-x-0 bottom-0 max-h-[82svh] overflow-y-auto rounded-t-[2rem] border-t border-white/10 px-5 pt-3 pb-6"
+      >
+        <div class="mx-auto mb-4 h-1.5 w-10 rounded-full bg-white/20"></div>
+        <div class="mx-auto max-w-[420px]">
+            <button
+              type="button"
+              @click="openProfile()"
+              class="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 text-left transition active:scale-[0.98]"
+            >
+              <span
+                class="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-base font-semibold text-fg"
+              >
+                <img
+                  x-show="me.photoUrl"
+                  :src="me.photoUrl"
+                  @error="me.photoUrl = null"
+                  alt=""
+                  class="absolute inset-0 h-full w-full object-cover"
+                />
+                <span x-show="!me.photoUrl" x-text="initials(me)"></span>
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-[15px] font-semibold" x-text="me.name"></p>
+                <p x-show="me.username" class="truncate text-sm text-muted" x-text="'@' + me.username"></p>
+              </div>
+              <svg
+                class="size-5 shrink-0 text-muted"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </button>
+
+            <button
+              @click="invite()"
+              class="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-accent px-6 py-3.5 text-[15px] font-semibold text-on-accent transition active:scale-[0.98]"
+            >
+              <svg
+                class="size-5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Пригласить друга
+            </button>
+
+            <div class="mt-3 flex items-center justify-between rounded-2xl border border-white/10 bg-white/5 px-4 py-3.5">
+              <span class="text-[15px]">Уведомления</span>
+              <button
+                @click="toggleNotify()"
+                class="relative h-7 w-12 shrink-0 rounded-full border border-white/10 transition-colors"
+                :class="me.notify ? 'bg-accent' : 'bg-white/10'"
+                role="switch"
+                :aria-checked="me.notify"
+              >
+                <span
+                  class="absolute top-1 size-5 rounded-full transition-all"
+                  :class="me.notify ? 'left-6 bg-on-accent' : 'left-1 bg-fg'"
+                ></span>
+              </button>
+            </div>
+
+            <template x-if="friends.length === 0">
+              <p class="mt-8 text-center text-sm text-muted">
+                Пригласите друзей, чтобы видеть их моменты.
+              </p>
+            </template>
+
+            <ul class="mt-6 space-y-2">
+              <template x-for="f in friends" :key="f.id">
+                <li class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <span
+                    class="relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-sm font-semibold text-fg"
+                  >
+                    <img
+                      x-show="f.photoUrl"
+                      :src="f.photoUrl"
+                      @error="f.photoUrl = null"
+                      alt=""
+                      class="absolute inset-0 h-full w-full object-cover"
+                    />
+                    <span x-show="!f.photoUrl" x-text="initials(f)"></span>
+                  </span>
+                  <span class="flex-1 truncate text-sm font-medium" x-text="f.name"></span>
+                  <button
+                    @click="removeFriend(f)"
+                    class="text-muted transition active:scale-90"
+                    aria-label="Удалить друга"
+                  >
+                    <svg
+                      class="size-5"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M18 6 6 18M6 6l12 12" />
+                    </svg>
+                  </button>
+                </li>
+              </template>
+            </ul>
+
+            <template x-if="blocked.length">
+              <div class="mt-8">
+                <p class="px-1 text-xs font-medium tracking-wide text-muted uppercase">Заблокированные</p>
+                <ul class="mt-3 space-y-2">
+                  <template x-for="b in blocked" :key="b.id">
+                    <li class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                      <span
+                        class="relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-sm font-semibold text-fg"
+                      >
+                        <img
+                          x-show="b.photoUrl"
+                          :src="b.photoUrl"
+                          @error="b.photoUrl = null"
+                          alt=""
+                          class="absolute inset-0 h-full w-full object-cover"
+                        />
+                        <span x-show="!b.photoUrl" x-text="initials(b)"></span>
+                      </span>
+                      <span class="flex-1 truncate text-sm font-medium" x-text="b.name"></span>
+                      <button
+                        @click="unblock(b)"
+                        class="rounded-full border border-white/10 px-3 py-1.5 text-xs font-medium text-fg transition active:scale-95"
+                      >
+                        Разблокировать
+                      </button>
+                    </li>
+                  </template>
+                </ul>
+              </div>
+            </template>
+          </div>
+        </div>
+    </dialog>
+
+    <dialog
+      x-ref="onboardDialog"
+      @cancel.prevent
+      aria-label="Добро пожаловать"
+      class="onboard"
+    >
+      <div class="fade-panel safe absolute inset-0 grid place-items-center bg-black/85 px-8 text-center">
+        <div class="max-w-xs motion-safe:animate-rise">
+          <h1 class="text-2xl font-semibold tracking-[-0.02em]">Добро пожаловать в Sythera</h1>
+          <p class="mt-3 text-[15px] leading-relaxed text-muted">
+            Снимайте моменты и делитесь ими с близким кругом. Свайп вниз — лента друзей, свайп вверх — снова камера.
+          </p>
+          <button
+            @click="finishOnboarding()"
+            class="mt-8 w-full rounded-full bg-accent px-6 py-3.5 text-[15px] font-semibold text-on-accent transition active:scale-[0.98]"
+          >
+            Начать
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <div
+      x-data="toasts"
+      @notify.window="add($event.detail)"
+      class="safe-b pointer-events-none fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-2 px-4 pb-5"
+    >
+      <template x-for="t in items" :key="t.id">
+        <div
+          x-show="true"
+          x-transition:enter="transition ease-out duration-300"
+          x-transition:enter-start="opacity-0 translate-y-4"
+          x-transition:enter-end="opacity-100 translate-y-0"
+          x-transition:leave="transition ease-in duration-200"
+          x-transition:leave-start="opacity-100 translate-y-0"
+          x-transition:leave-end="opacity-0 translate-y-4"
+          @click="remove(t.id)"
+          role="status"
+          aria-live="polite"
+          class="glass pointer-events-auto flex w-fit max-w-[88vw] items-center gap-3 rounded-2xl border border-white/10 px-5 py-3 text-center text-sm break-words shadow-2xl shadow-black/40"
+        >
+          <span x-text="t.text"></span>
+        </div>
+      </template>
+    </div>
+  </body>
+</html>
