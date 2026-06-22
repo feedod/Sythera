@@ -806,7 +806,7 @@
             this.notify("Опубликовано");
           } catch {
             haptic.notify("error");
-            this.notify("Не удалось опубликовать");
+            this.notify(error);
           } finally {
             this.sending = false;
             this.syncChrome();
