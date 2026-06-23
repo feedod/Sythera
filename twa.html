@@ -1011,7 +1011,8 @@
             moment.reply = "";
             haptic.notify("success");
             this.notify("Отправлено");
-          } catch {
+          } catch (e) {
+            console.log(invoke failed:", e);
             haptic.notify("error");
             this.notify("Не удалось отправить");
           }
