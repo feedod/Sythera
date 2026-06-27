@@ -146,8 +146,14 @@
           "swiper": "https://esm.sh/swiper@11",
           "swiper/modules": "https://esm.sh/swiper@11/modules",
           "iconify-icon": "https://esm.sh/iconify-icon@2",
-          "browser-image-compression": "https://esm.sh/browser-image-compression@2",
-          "qrcode": "https://esm.sh/qrcode@1"
+          "qrcode": "https://esm.sh/qrcode@1",
+          "zustand/vanilla": "https://esm.sh/zustand@4/vanilla",
+          "ky": "https://esm.sh/ky@1",
+          "date-fns": "https://esm.sh/date-fns@3",
+          "date-fns/locale/ru": "https://esm.sh/date-fns@3/locale/ru",
+          "mitt": "https://esm.sh/mitt@3",
+          "compressorjs": "https://esm.sh/compressorjs@1",
+          "sortablejs": "https://esm.sh/sortablejs@1"
         }
       }
     </script>
@@ -252,8 +258,14 @@
       import Swiper from "swiper";
       import { Mousewheel, Keyboard, Pagination } from "swiper/modules";
       import "iconify-icon";
-      import imageCompression from "browser-image-compression";
       import QRCode from "qrcode";
+      import { createStore } from "zustand/vanilla";
+      import ky from "ky";
+      import mitt from "mitt";
+      import Compressor from "compressorjs";
+      import Sortable from "sortablejs";
+      import { formatDistanceToNowStrict, differenceInMilliseconds, format } from "date-fns";
+      import { ru } from "date-fns/locale/ru";
       import {
         init as initTelegram,
         miniApp,
@@ -338,26 +350,103 @@
           .trim()
           .slice(0, max);
 
-      const RTF = new Intl.RelativeTimeFormat("ru", { numeric: "auto" });
+      const RECENT_THRESHOLD = 1000 * 60 * 60 * 24 * 3;
       const ago = (ts) => {
         if (!ts) return "";
-        const s = (new Date(ts).getTime() - Date.now()) / 1000;
-        const abs = Math.abs(s);
-        if (abs < 45) return "только что";
-        if (abs < 3600) return RTF.format(Math.round(s / 60), "minute");
-        if (abs < 86400) return RTF.format(Math.round(s / 3600), "hour");
-        if (abs < 86400 * 7) return RTF.format(Math.round(s / 86400), "day");
-        if (abs < 86400 * 30) return RTF.format(Math.round(s / (86400 * 7)), "week");
-        if (abs < 86400 * 365) return RTF.format(Math.round(s / (86400 * 30)), "month");
-        return RTF.format(Math.round(s / (86400 * 365)), "year");
+        const d = new Date(ts);
+        if (differenceInMilliseconds(Date.now(), d) < 45000) return "только что";
+        return formatDistanceToNowStrict(d, { addSuffix: true, locale: ru });
       };
-      const RECENT_THRESHOLD = 1000 * 60 * 60 * 24 * 3;
       const seenLabel = (ts) => {
         if (!ts) return "был(а) давно";
         return Date.now() - new Date(ts).getTime() < RECENT_THRESHOLD
           ? "был(а) недавно"
           : "был(а) давно";
       };
+      const fmtMomentDate = (ts) => format(new Date(ts), "d MMMM, HH:mm", { locale: ru });
+
+      const bus = mitt();
+      const notify = (text) => bus.emit("notify", { text });
+
+      const compressImage = (file, opts = {}) =>
+        new Promise((resolve, reject) => {
+          new Compressor(file, {
+            maxWidth: UPLOAD_MAX_PX,
+            maxHeight: UPLOAD_MAX_PX,
+            quality: 0.85,
+            mimeType: "image/jpeg",
+            convertSize: Infinity,
+            success: resolve,
+            error: reject,
+            ...opts,
+          });
+        });
+
+      let _token = null;
+      const setToken = (t) => (_token = t);
+      const httpClient = ky.create({
+        prefixUrl: `${CONFIG.SUPABASE_URL}/functions/v1/`,
+        timeout: 20000,
+        retry: { limit: 2, methods: ["post", "get"], statusCodes: [429, 500, 502, 503] },
+        hooks: {
+          beforeRequest: [
+            (req) => {
+              req.headers.set("apikey", CONFIG.SUPABASE_KEY);
+              req.headers.set("Authorization", `Bearer ${_token || CONFIG.SUPABASE_KEY}`);
+            },
+          ],
+        },
+      });
+      const callFn = async (name, body) => {
+        try {
+          const data = await httpClient.post(name, { json: body ?? {} }).json();
+          return { data, error: null };
+        } catch (e) {
+          let message = e?.message;
+          try {
+            message = (await e.response?.json())?.error || message;
+          } catch {}
+          return { data: null, error: { message, status: e?.response?.status } };
+        }
+      };
+
+      const store = createStore((set, get) => ({
+        moments: [],
+        friends: [],
+        blocked: [],
+        drafts: [],
+        requests: [],
+        sent: [],
+        onlineIds: new Set(),
+        momentsTotal: 0,
+        feedHasMore: false,
+        patch: (p) => set(typeof p === "function" ? p : p),
+        setMoments: (moments, extra = {}) => set({ moments, ...extra }),
+        removeMoment: (id) =>
+          set((s) => ({
+            moments: s.moments.filter((m) => m.id !== id),
+            momentsTotal: Math.max(0, s.momentsTotal - 1),
+          })),
+        removeAuthorMoments: (authorId) =>
+          set((s) => ({ moments: s.moments.filter((m) => m.author?.id !== authorId) })),
+        setFriends: (friends) => set({ friends }),
+        setBlocked: (blocked) => set({ blocked }),
+        addBlocked: (user) =>
+          set((s) => ({ blocked: [...s.blocked.filter((b) => b.id !== user.id), user] })),
+        removeBlocked: (id) => set((s) => ({ blocked: s.blocked.filter((b) => b.id !== id) })),
+        setDrafts: (drafts) => set({ drafts }),
+        removeDraft: (id) => set((s) => ({ drafts: s.drafts.filter((d) => d.id !== id) })),
+        reorderDrafts: (ids) =>
+          set((s) => ({ drafts: ids.map((id) => s.drafts.find((d) => d.id === id)).filter(Boolean) })),
+        setRequests: (requests) => set({ requests }),
+        removeRequest: (id) => set((s) => ({ requests: s.requests.filter((r) => r.id !== id) })),
+        setSent: (sent) => set({ sent }),
+        removeSent: (id) => set((s) => ({ sent: s.sent.filter((r) => r.id !== id) })),
+        setOnline: (ids) => set({ onlineIds: new Set(ids) }),
+        isBlocked: (id) => id != null && get().blocked.some((b) => b.id === id),
+        isFriend: (id) => id != null && get().friends.some((f) => f.id === id),
+      }));
+      const st = () => store.getState();
 
       const haptic = {
         impact: (style = "light") => tg(() => hapticFeedback.impactOccurred(style)),
@@ -392,13 +481,6 @@
       };
 
       const CARD_FONT = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
-      const CARD_DTF = new Intl.DateTimeFormat("ru-RU", {
-        day: "numeric",
-        month: "long",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      const fmtMomentDate = (ts) => CARD_DTF.format(new Date(ts));
       const roundRect = (ctx, x, y, w, h, r) => {
         r = Math.min(r, w / 2, h / 2);
         ctx.beginPath();
@@ -501,6 +583,20 @@
         });
       });
 
+      Alpine.directive("sortable", (el, { expression }, { evaluate, cleanup }) => {
+        const sortable = Sortable.create(el, {
+          animation: 180,
+          delay: 140,
+          delayOnTouchOnly: true,
+          ghostClass: "opacity-40",
+          onEnd: () => {
+            const ids = [...el.children].map((c) => c.dataset.id).filter(Boolean);
+            evaluate(expression, { scope: { $ids: ids } });
+          },
+        });
+        cleanup(() => sortable.destroy());
+      });
+
       const SHEETS = {
         friendsOpen: "friendsDialog",
         qrOpen: "qrDialog",
@@ -556,9 +652,16 @@
         recipientsOpen: false,
         momentShareOpen: false,
         reportOpen: false,
-        sent: [],
-        sentVisible: REQ_PAGE,
+        moments: [],
+        friends: [],
+        blocked: [],
         drafts: [],
+        requests: [],
+        sent: [],
+        onlineIds: new Set(),
+        momentsTotal: 0,
+        feedHasMore: false,
+        sentVisible: REQ_PAGE,
         recipientsTarget: null,
         momentShare: { moment: null, qr: "" },
         reportTarget: null,
@@ -566,8 +669,6 @@
         links: { support: CONFIG.SUPPORT_URL, tos: CONFIG.TOS_URL, privacy: CONFIG.PRIVACY_URL },
         friendLimit: FRIEND_LIMIT,
         activity: { moment: null, list: [], loading: false },
-        requests: [],
-        onlineIds: new Set(),
         presence: null,
         friendsVisible: FRIENDS_PAGE,
         requestsVisible: REQ_PAGE,
@@ -578,12 +679,7 @@
         camGranted: false,
         captured: null,
         sending: false,
-        moments: [],
-        friends: [],
-        blocked: [],
         feedLimit: PAGE,
-        feedHasMore: false,
-        momentsTotal: 0,
         loadingMore: false,
         showOnboarding: false,
         stream: null,
@@ -599,8 +695,10 @@
         swiper: null,
         composer: { open: false, kind: null, moment: null, value: "", placeholder: "", max: 0, withReactions: false },
         _starting: false,
+        _unsub: null,
 
         async init() {
+          this._unsub = store.subscribe(() => this.refreshUI());
           await this.boot();
           try {
             this._cleanup();
@@ -612,6 +710,7 @@
             this.startParam = startParam;
             const session = await this.authenticate(rawInitData, startParam);
             this.token = session.token;
+            setToken(this.token);
             this.me = { ...this.me, ...session.user };
             await this.supabase.realtime.setAuth();
             this.status = "ready";
@@ -636,11 +735,34 @@
         },
 
         destroy() {
+          this._unsub?.();
+          this._unsub = null;
           this.stopCamera();
           this.clearCaptured();
           this.swiper?.destroy(true, true);
           this.swiper = null;
           this._cleanup();
+        },
+
+        refreshUI() {
+          const s = st();
+          this.moments = s.moments;
+          this.friends = s.friends;
+          this.blocked = s.blocked;
+          this.drafts = s.drafts;
+          this.requests = s.requests;
+          this.sent = s.sent;
+          this.onlineIds = s.onlineIds;
+          this.momentsTotal = s.momentsTotal;
+          this.feedHasMore = s.feedHasMore;
+          this.syncBack();
+          this.lockSwipe();
+          this.$nextTick(() => this.swiper?.update());
+          bus.emit("ui:refresh");
+        },
+
+        notify(text) {
+          notify(text);
         },
 
         _cleanup() {
@@ -671,13 +793,8 @@
         },
 
         async authenticate(initData, startParam) {
-          const { data, error } = await this.supabase.functions.invoke("auth", {
-            body: { initData, startParam },
-          });
-          if (error) {
-            const message = (await error.context?.json().catch(() => null))?.error;
-            throw new Error(message || "Не удалось войти");
-          }
+          const { data, error } = await callFn("auth", { initData, startParam });
+          if (error) throw new Error(error.message || "Не удалось войти");
           return data;
         },
 
@@ -780,10 +897,8 @@
           if (ctx.type === "moment") return this.openMoment(ctx.id);
           if (ctx.key === String(this.me.id) || ctx.key === this.me.username) return;
           try {
-            const { error } = await this.supabase.functions.invoke("friend-request", {
-              body: { key: ctx.key },
-            });
-            if (error) throw error;
+            const { error } = await callFn("friend-request", { key: ctx.key });
+            if (error) throw new Error(error.message);
             haptic.notify("success");
             this.notify("Заявка в друзья отправлена");
             await this.loadSent();
@@ -809,10 +924,11 @@
             .eq("id", id)
             .maybeSingle();
           if (!data || this.moments.some((m) => m.id === id)) return;
+          if (st().isBlocked(data.author?.id)) return;
           const [url] = await this.signUrls([data.image_path]);
           const built = this.buildMoment(data, null, url);
           built._external = true;
-          this.moments = [built, ...this.moments];
+          st().setMoments([built, ...st().moments]);
           await this.$nextTick();
           this.swiper?.update();
         },
@@ -858,7 +974,7 @@
           const current = this.moments[idx - 1];
           const stale = this.moments.some((m) => m._external && m !== current);
           if (!stale) return;
-          this.moments = this.moments.filter((m) => !m._external || m === current);
+          st().setMoments(this.moments.filter((m) => !m._external || m === current));
           this.$nextTick(() => this.swiper?.update());
         },
         onMomentVisible(m) {
@@ -1034,22 +1150,25 @@
           try {
             const { data, error } = await this.supabase
               .from("drafts")
-              .select("id, image_path, caption, recipient_ids, created_at")
+              .select("id, image_path, caption, recipient_ids, created_at, sort_order")
               .eq("author_id", this.me.id)
+              .order("sort_order", { ascending: true })
               .order("created_at", { ascending: false });
-            if (error) return void (this.drafts = []);
+            if (error) return st().setDrafts([]);
             const urls = await this.signUrls((data ?? []).map((d) => d.image_path));
-            this.drafts = (data ?? []).map((d, i) => ({
-              id: d.id,
-              path: d.image_path,
-              caption: d.caption,
-              recipientIds: d.recipient_ids ?? [],
-              createdAt: d.created_at,
-              _url: urls[i],
-            }));
+            st().setDrafts(
+              (data ?? []).map((d, i) => ({
+                id: d.id,
+                path: d.image_path,
+                caption: d.caption,
+                recipientIds: d.recipient_ids ?? [],
+                createdAt: d.created_at,
+                _url: urls[i],
+              })),
+            );
           } catch (e) {
             log("loadDrafts", e);
-            this.drafts = [];
+            st().setDrafts([]);
           }
         },
         async openDrafts() {
@@ -1060,17 +1179,22 @@
         closeDrafts() {
           this.draftsOpen = false;
         },
+        async reorderDrafts(ids) {
+          haptic.select();
+          st().reorderDrafts(ids);
+          try {
+            await Promise.all(
+              ids.map((id, i) => this.supabase.from("drafts").update({ sort_order: i }).eq("id", id)),
+            );
+          } catch (e) {
+            log("reorderDrafts", e);
+          }
+        },
         async saveDraft() {
           if (!this.captured || this.sending) return;
           this.sending = true;
           try {
-            const blob = await imageCompression(this.captured.blob, {
-              maxWidthOrHeight: UPLOAD_MAX_PX,
-              maxSizeMB: 0.6,
-              initialQuality: 0.85,
-              fileType: "image/jpeg",
-              useWebWorker: true,
-            });
+            const blob = await compressImage(this.captured.blob);
             const path = `${this.me.id}/drafts/${uuid()}.jpg`;
             const up = await this.supabase.storage
               .from("moments")
@@ -1124,7 +1248,7 @@
           const { error } = await this.supabase.from("drafts").delete().eq("id", d.id);
           if (error) return this.notify("Не удалось удалить");
           tg(() => this.supabase.storage.from("moments").remove([d.path]));
-          this.drafts = this.drafts.filter((x) => x.id !== d.id);
+          st().removeDraft(d.id);
         },
 
         openRecipients(moment = null) {
@@ -1266,12 +1390,14 @@
               .select("id, created_at, to:profiles!friend_requests_to_id_fkey(id, first_name, username, photo_url, last_seen_at, show_last_seen)")
               .eq("from_id", this.me.id)
               .order("created_at", { ascending: false });
-            if (error) return void (this.sent = []);
-            this.sent = (data ?? [])
-              .map((r) => ({ id: r.id, createdAt: r.created_at, user: toAuthor(r.to) }))
-              .filter((r) => r.user);
+            if (error) return st().setSent([]);
+            st().setSent(
+              (data ?? [])
+                .map((r) => ({ id: r.id, createdAt: r.created_at, user: toAuthor(r.to) }))
+                .filter((r) => r.user),
+            );
           } catch {
-            this.sent = [];
+            st().setSent([]);
           }
         },
         async cancelSent(req) {
@@ -1282,7 +1408,7 @@
             .eq("id", req.id)
             .eq("from_id", this.me.id);
           if (error) return this.notify("Не удалось отменить");
-          this.sent = this.sent.filter((r) => r.id !== req.id);
+          st().removeSent(req.id);
         },
         moreSent() {
           haptic.select();
@@ -1314,8 +1440,8 @@
         async deleteAccount() {
           if (!(await this.confirm("Удалить аккаунт?", "Все ваши моменты, друзья и данные будут удалены безвозвратно.", "Удалить"))) return;
           try {
-            const { error } = await this.supabase.functions.invoke("delete-account");
-            if (error) throw error;
+            const { error } = await callFn("delete-account");
+            if (error) throw new Error(error.message);
             haptic.notify("success");
             tg(() => miniApp.close.isAvailable() && miniApp.close());
           } catch (e) {
@@ -1442,21 +1568,27 @@
             .order("created_at", { ascending: false })
             .limit(this.feedLimit);
           if (error) return;
-          this.momentsTotal = count ?? data.length;
-          this.feedHasMore = data.length < this.momentsTotal;
-          const prev = new Map(this.moments.map((m) => [m.id, m]));
+          const state = st();
+          const prev = new Map(state.moments.map((m) => [m.id, m]));
           const freshIds = new Set(data.map((m) => m.id));
-          const externals = this.moments.filter((m) => m._external && !freshIds.has(m.id));
+          const externals = state.moments.filter((m) => m._external && !freshIds.has(m.id));
           const fresh = data.filter((m) => !prev.get(m.id)?.url);
           const signed = await this.signUrls(fresh.map((m) => m.image_path));
           const signMap = new Map(fresh.map((m, i) => [m.id, signed[i]]));
-          const built = data.map((m) => this.buildMoment(m, prev.get(m.id), signMap.get(m.id)));
-          this.moments = [...externals, ...built];
+          const built = data
+            .map((m) => this.buildMoment(m, prev.get(m.id), signMap.get(m.id)))
+            .filter((m) => !state.isBlocked(m.author?.id));
+          const total = count ?? data.length;
+          state.setMoments([...externals, ...built], {
+            momentsTotal: total,
+            feedHasMore: data.length < total,
+          });
           await this.loadViews();
           this.$nextTick(() => this.swiper?.update());
         },
         async loadViews() {
-          const ids = this.moments.map((m) => m.id);
+          const moments = st().moments;
+          const ids = moments.map((m) => m.id);
           if (!ids.length) return;
           const { data } = await this.supabase
             .from("moment_views")
@@ -1470,10 +1602,11 @@
             counts[v.moment_id] = (counts[v.moment_id] ?? 0) + 1;
             if (v.viewer_id === mine) seen.add(v.moment_id);
           }
-          for (const m of this.moments) {
+          for (const m of moments) {
             if (m.mine) m.views = counts[m.id] ?? 0;
             else if (seen.has(m.id)) m.seen = true;
           }
+          st().setMoments([...moments]);
         },
 
         async reSign(m) {
@@ -1505,14 +1638,14 @@
             .from("blocks")
             .select("blocked:profiles!blocks_blocked_id_fkey(id, first_name, username, photo_url, last_seen_at, show_last_seen)")
             .eq("blocker_id", this.me.id);
-          this.blocked = (data ?? []).map((b) => toAuthor(b.blocked)).filter(Boolean);
+          st().setBlocked((data ?? []).map((b) => toAuthor(b.blocked)).filter(Boolean));
         },
         async loadFriends() {
           const { data } = await this.supabase
             .from("friendships")
             .select("friend:profiles!friendships_friend_id_fkey(id, first_name, username, photo_url, last_seen_at, show_last_seen)")
             .eq("user_id", this.me.id);
-          this.friends = (data ?? []).map((f) => toAuthor(f.friend)).filter(Boolean);
+          st().setFriends((data ?? []).map((f) => toAuthor(f.friend)).filter(Boolean));
         },
         async loadRequests() {
           try {
@@ -1521,12 +1654,14 @@
               .select("id, created_at, from:profiles!friend_requests_from_id_fkey(id, first_name, username, photo_url, last_seen_at, show_last_seen)")
               .eq("to_id", this.me.id)
               .order("created_at", { ascending: false });
-            if (error) return void (this.requests = []);
-            this.requests = (data ?? [])
-              .map((r) => ({ id: r.id, createdAt: r.created_at, user: toAuthor(r.from) }))
-              .filter((r) => r.user);
+            if (error) return st().setRequests([]);
+            st().setRequests(
+              (data ?? [])
+                .map((r) => ({ id: r.id, createdAt: r.created_at, user: toAuthor(r.from) }))
+                .filter((r) => r.user),
+            );
           } catch {
-            this.requests = [];
+            st().setRequests([]);
           }
         },
         async acceptRequest(req) {
@@ -1537,7 +1672,7 @@
             return this.notify(is429(error) ? "Слишком много запросов, попробуйте позже" : "Не удалось принять заявку");
           }
           haptic.notify("success");
-          this.requests = this.requests.filter((r) => r.id !== req.id);
+          st().removeRequest(req.id);
           await Promise.all([this.loadFriends(), this.loadFeed()]);
         },
         async declineRequest(req) {
@@ -1548,7 +1683,7 @@
             .eq("id", req.id)
             .eq("to_id", this.me.id);
           if (error) return this.notify("Не удалось отклонить");
-          this.requests = this.requests.filter((r) => r.id !== req.id);
+          st().removeRequest(req.id);
         },
 
         subscribe() {
@@ -1579,7 +1714,7 @@
           });
           this.presence
             .on("presence", { event: "sync" }, () => {
-              this.onlineIds = new Set(Object.keys(this.presence.presenceState()));
+              st().setOnline(Object.keys(this.presence.presenceState()));
             })
             .subscribe(async (status) => {
               if (status === "SUBSCRIBED") await this.presence.track({ at: Date.now() });
@@ -1601,10 +1736,14 @@
           return id != null && id !== this.me.id && this.onlineIds.has(String(id));
         },
         isFriend(id) {
-          return id != null && this.friends.some((f) => f.id === id);
+          return st().isFriend(id);
+        },
+        isBlocked(id) {
+          return st().isBlocked(id);
         },
         presenceText(user) {
           if (!user) return "";
+          if (this.isBlocked(user.id)) return "был(а) давно";
           if (user.showLastSeen === false) return "";
           if (this.isOnline(user.id)) return "в сети";
           return user.lastSeen ? seenLabel(user.lastSeen) : "был(а) давно";
@@ -1778,13 +1917,7 @@
           const draftId = this.captured.draftId;
           const draftPath = this.captured.draftPath;
           try {
-            const blob = await imageCompression(this.captured.blob, {
-              maxWidthOrHeight: UPLOAD_MAX_PX,
-              maxSizeMB: 0.6,
-              initialQuality: 0.85,
-              fileType: "image/jpeg",
-              useWebWorker: true,
-            });
+            const blob = await compressImage(this.captured.blob);
             const path = `${this.me.id}/${uuid()}.jpg`;
             for (let attempt = 1; ; attempt++) {
               const up = await this.supabase.storage
@@ -1804,7 +1937,7 @@
             if (draftId) {
               await this.supabase.from("drafts").delete().eq("id", draftId);
               if (draftPath) tg(() => this.supabase.storage.from("moments").remove([draftPath]));
-              this.drafts = this.drafts.filter((x) => x.id !== draftId);
+              st().removeDraft(draftId);
             }
             this.lastPublishAt = Date.now();
             haptic.notify("success");
@@ -1830,8 +1963,7 @@
           if (error) return this.notify("Не удалось удалить");
           tg(() => this.supabase.storage.from("moments").remove([moment.path]));
           haptic.notify("warning");
-          this.momentsTotal = Math.max(0, this.momentsTotal - 1);
-          this.moments = this.moments.filter((m) => m.id !== moment.id);
+          st().removeMoment(moment.id);
           await this.$nextTick();
           this.swiper?.update();
           if (!this.moments.length) return this.toCamera();
@@ -1864,9 +1996,12 @@
           haptic.impact();
           if (!shareStory.isAvailable()) return this.notify("Недоступно в этой версии Telegram");
           try {
-            const url = await this.hostCard(moment);
+            const { data, error } = await this.supabase.storage
+              .from("moments")
+              .createSignedUrl(moment.path, 600);
+            if (error || !data?.signedUrl) throw error || new Error("sign failed");
             const caption = ((moment.caption ? moment.caption + "\n" : "") + this.momentLink(moment)).slice(0, 200);
-            shareStory(url, { text: caption });
+            shareStory(data.signedUrl, { text: caption });
             haptic.notify("success");
           } catch (e) {
             log("shareToStory", e);
@@ -1883,22 +2018,25 @@
           const { error } = await this.supabase.rpc("block_user", { target_id: author.id });
           if (error) return this.notify("Не удалось заблокировать");
           haptic.notify("warning");
-          this.blocked = [...this.blocked.filter((b) => b.id !== author.id), author];
-          this.requests = this.requests.filter((r) => r.user.id !== author.id);
-          this.moments = this.moments.filter((m) => m.author?.id !== author.id);
-          this.momentsTotal = Math.max(0, this.momentsTotal - 1);
+          st().patch((s) => ({
+            blocked: [...s.blocked.filter((b) => b.id !== author.id), author],
+            requests: s.requests.filter((r) => r.user.id !== author.id),
+            moments: s.moments.filter((m) => m.author?.id !== author.id),
+            momentsTotal: Math.max(0, s.momentsTotal - 1),
+          }));
           await this.$nextTick();
           this.swiper?.update();
           if (!this.moments.length) return this.toCamera();
           this.swiper?.slideTo(Math.min(Math.max(1, idx), this.moments.length));
         },
         async blockFriend(friend) {
+          if (this.isBlocked(friend.id)) return this.unblock(friend);
           if (!(await this.confirm("Заблокировать?", `${friend.name} останется в друзьях, но не увидит ваши моменты и статус.`, "Заблокировать"))) return;
           const { error } = await this.supabase.rpc("block_user", { target_id: friend.id });
           if (error) return this.notify("Не удалось заблокировать");
           haptic.notify("warning");
-          this.blocked = [...this.blocked.filter((b) => b.id !== friend.id), friend];
-          this.moments = this.moments.filter((m) => m.author?.id !== friend.id);
+          st().addBlocked(friend);
+          st().removeAuthorMoments(friend.id);
           await this.loadFeed();
         },
         async unblock(user) {
@@ -1909,8 +2047,8 @@
             .eq("blocked_id", user.id);
           if (error) return this.notify("Не удалось разблокировать");
           haptic.select();
-          this.blocked = this.blocked.filter((b) => b.id !== user.id);
-          this.loadFeed();
+          st().removeBlocked(user.id);
+          await this.loadFeed();
         },
 
         async maybeOnboard() {
@@ -1970,8 +2108,8 @@
             return this.notify(`Подождите ${Math.ceil(wait / 1000)} с перед ответом`);
           }
           try {
-            const { error } = await this.supabase.functions.invoke("reply", { body: { momentId: moment.id, text } });
-            if (error) throw error;
+            const { error } = await callFn("reply", { momentId: moment.id, text });
+            if (error) throw new Error(error.message);
             this.lastReplyAt = Date.now();
             haptic.notify("success");
             this.notify("Отправлено");
@@ -2079,8 +2217,8 @@
             .or(`and(user_id.eq.${me},friend_id.eq.${friend.id}),and(user_id.eq.${friend.id},friend_id.eq.${me})`);
           if (error) return this.notify("Не удалось удалить");
           haptic.notify("warning");
-          this.friends = this.friends.filter((f) => f.id !== friend.id);
-          this.loadFeed();
+          st().setFriends(this.friends.filter((f) => f.id !== friend.id));
+          await this.loadFeed();
         },
 
         async momentCardBlob(moment) {
@@ -2191,9 +2329,6 @@
           return username ? `${base}${username}-${moment.id}` : `${base}m_${moment.id}`;
         },
 
-        notify(text) {
-          window.dispatchEvent(new CustomEvent("notify", { detail: { text } }));
-        },
         async confirm(title, message, okText = "Удалить") {
           if (!popup.open.isAvailable()) return false;
           try {
@@ -2264,6 +2399,9 @@
 
       Alpine.data("toasts", () => ({
         items: [],
+        init() {
+          bus.on("notify", (d) => this.add(d));
+        },
         add(detail) {
           const id = Date.now() + Math.random();
           this.items.push({ id, text: detail.text });
@@ -2393,25 +2531,25 @@
               </div>
 
               <div x-show="!captured" class="flex w-full max-w-[340px] items-center justify-between">
-                <div class="grid size-14 place-items-center">
+                <div class="flex w-14 flex-col items-center gap-2">
+                  <button
+                    x-show="torchSupported"
+                    @click="toggleTorch()"
+                    aria-label="Вспышка"
+                    class="grid size-12 place-items-center rounded-full transition active:scale-90"
+                    :class="torch ? 'text-yellow-300' : 'text-white/70 active:text-fg'"
+                  >
+                    <iconify-icon aria-hidden="true" icon="lucide:zap" class="text-[1.75rem]"></iconify-icon>
+                  </button>
                   <button
                     x-show="drafts.length"
                     x-cloak
                     @click="openDrafts()"
                     aria-label="Черновики"
-                    class="relative grid size-14 place-items-center rounded-full text-white/70 transition active:scale-90 active:text-fg"
+                    class="relative grid size-12 place-items-center rounded-full text-white/70 transition active:scale-90 active:text-fg"
                   >
-                    <iconify-icon aria-hidden="true" icon="lucide:layers" class="text-[2rem]"></iconify-icon>
-                    <span class="absolute right-1 top-1 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] font-black leading-none text-on-accent tabular-nums" x-text="drafts.length"></span>
-                  </button>
-                  <button
-                    x-show="!drafts.length && torchSupported"
-                    @click="toggleTorch()"
-                    aria-label="Вспышка"
-                    class="grid size-14 place-items-center rounded-full transition active:scale-90"
-                    :class="torch ? 'text-yellow-300' : 'text-white/70 active:text-fg'"
-                  >
-                    <iconify-icon aria-hidden="true" icon="lucide:zap" class="text-[2rem]"></iconify-icon>
+                    <iconify-icon aria-hidden="true" icon="lucide:layers" class="text-[1.75rem]"></iconify-icon>
+                    <span class="absolute right-0 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] font-black leading-none text-on-accent tabular-nums" x-text="drafts.length"></span>
                   </button>
                 </div>
 
@@ -2739,19 +2877,22 @@
                 <button type="button" @click="openUserProfile(f)" class="flex min-w-0 flex-1 items-center gap-3 text-left transition active:scale-[0.98]">
                   <span class="relative shrink-0">
                     <span class="relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-sm font-bold text-fg">
-                      <img x-show="f.photoUrl" :src="f.photoUrl" @error="f.photoUrl = null" alt="" class="absolute inset-0 h-full w-full object-cover" />
-                      <span x-show="!f.photoUrl" x-text="initials(f)"></span>
+                      <template x-if="!isBlocked(f.id)">
+                        <img x-show="f.photoUrl" :src="f.photoUrl" @error="f.photoUrl = null" alt="" class="absolute inset-0 h-full w-full object-cover" />
+                      </template>
+                      <span x-show="isBlocked(f.id) || !f.photoUrl" x-text="initials(f)"></span>
                     </span>
-                    <span x-show="isOnline(f.id)" x-cloak class="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-400 ring-2 ring-black"></span>
+                    <span x-show="!isBlocked(f.id) && isOnline(f.id)" x-cloak class="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-400 ring-2 ring-black"></span>
                   </span>
                   <span class="min-w-0 flex-1">
                     <span class="block truncate text-[15px] font-semibold" x-text="f.name"></span>
-                    <span x-show="presenceText(f)" class="block truncate text-[12px]" :class="isOnline(f.id) ? 'text-emerald-400' : 'text-muted'" x-text="presenceText(f)"></span>
+                    <span x-show="presenceText(f)" class="block truncate text-[12px]" :class="!isBlocked(f.id) && isOnline(f.id) ? 'text-emerald-400' : 'text-muted'" x-text="presenceText(f)"></span>
                   </span>
                 </button>
+                <span x-show="isBlocked(f.id)" x-cloak class="shrink-0 rounded-full bg-danger/15 px-2 py-0.5 text-[11px] font-bold text-danger">Заблокирован</span>
                 <div class="flex shrink-0 items-center gap-1">
-                  <button @click="blockFriend(f)" class="grid size-9 place-items-center rounded-full text-muted transition active:scale-90 active:text-danger" aria-label="Заблокировать">
-                    <iconify-icon aria-hidden="true" icon="lucide:ban" class="text-[1.2rem]"></iconify-icon>
+                  <button @click="blockFriend(f)" class="grid size-9 place-items-center rounded-full transition active:scale-90" :class="isBlocked(f.id) ? 'text-danger' : 'text-muted active:text-danger'" :aria-label="isBlocked(f.id) ? 'Разблокировать' : 'Заблокировать'">
+                    <iconify-icon aria-hidden="true" :icon="isBlocked(f.id) ? 'lucide:shield-off' : 'lucide:ban'" class="text-[1.2rem]"></iconify-icon>
                   </button>
                   <button @click="removeFriend(f)" class="grid size-9 place-items-center rounded-full text-muted transition active:scale-90" aria-label="Удалить друга">
                     <iconify-icon aria-hidden="true" icon="lucide:x" class="text-[1.25rem]"></iconify-icon>
@@ -2839,10 +2980,12 @@
               <li class="flex items-center gap-3 rounded-3xl border border-white/10 bg-white/5 px-4 py-3">
                 <button type="button" @click="openUserProfile(b)" class="flex min-w-0 flex-1 items-center gap-3 text-left transition active:scale-[0.98]">
                   <span class="relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-sm font-bold text-fg">
-                    <img x-show="b.photoUrl" :src="b.photoUrl" @error="b.photoUrl = null" alt="" class="absolute inset-0 h-full w-full object-cover" />
-                    <span x-show="!b.photoUrl" x-text="initials(b)"></span>
+                    <span x-text="initials(b)"></span>
                   </span>
-                  <span class="min-w-0 flex-1 truncate text-[15px] font-semibold" x-text="b.name"></span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-[15px] font-semibold" x-text="b.name"></span>
+                    <span class="block text-[12px] text-muted">был(а) давно</span>
+                  </span>
                 </button>
                 <button @click="unblock(b)" class="shrink-0 rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-fg transition active:scale-95">Разблокировать</button>
               </li>
@@ -3020,9 +3163,9 @@
               <p class="text-[15px] text-muted">Здесь будут снимки, сохранённые на потом.</p>
             </div>
           </template>
-          <ul x-auto-animate class="grid grid-cols-3 gap-2.5">
+          <ul x-sortable="reorderDrafts($ids)" class="grid grid-cols-3 gap-2.5">
             <template x-for="d in drafts" :key="d.id">
-              <li class="relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+              <li :data-id="d.id" class="relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-white/5">
                 <button type="button" @click="openDraft(d)" class="block h-full w-full transition active:scale-[0.97]">
                   <img :src="d._url" alt="" class="h-full w-full object-cover" />
                   <span x-show="d.caption" class="absolute inset-x-1 bottom-1 truncate rounded-lg bg-black/55 px-2 py-0.5 text-[11px] font-medium text-fg" x-text="d.caption"></span>
@@ -3145,7 +3288,7 @@
       </div>
     </div>
 
-    <div id="toasts" popover="manual" x-data="toasts" @notify.window="add($event.detail)" x-auto-animate class="safe-b pointer-events-none fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-2 px-4 pb-5">
+    <div id="toasts" popover="manual" x-data="toasts" x-auto-animate class="safe-b pointer-events-none fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-2 px-4 pb-5">
       <template x-for="t in items" :key="t.id">
         <div @click="remove(t.id)" role="status" aria-live="polite" class="glass pointer-events-auto flex w-fit max-w-[88vw] items-center gap-3 break-words rounded-2xl border border-white/10 px-5 py-3 text-center text-sm font-medium shadow-2xl shadow-black/40">
           <span x-text="t.text"></span>
