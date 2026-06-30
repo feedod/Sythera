@@ -798,20 +798,21 @@
           await this.boot();
           try {
             this._cleanup();
-            this.supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, {
-              accessToken: async () => this.token ?? CONFIG.SUPABASE_KEY,
-              auth: { persistSession: false, autoRefreshToken: false },
-            });
+const { rawInitData, startParam } = this.launchContext();
+this.startParam = startParam;
+const session = await this.authenticate(rawInitData, startParam);
+this.token = session.token;
+setAuthToken(session.token);
+this.me = { ...this.me, ...session.user };
 
-            const { rawInitData, startParam } = this.launchContext();
-            this.startParam = startParam;
-            const session = await this.authenticate(rawInitData, startParam);
-            this.token = session.token;
-            setAuthToken(session.token);
-            this.me = { ...this.me, ...session.user };
+this.supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, {
+  accessToken: async () => this.token ?? CONFIG.SUPABASE_KEY,
+  auth: { persistSession: false, autoRefreshToken: false },
+});
 
-            await this.supabase.realtime.setAuth();
-            this.status = "ready";
+await this.supabase.realtime.setAuth();
+this.status = "ready";
+
             this._clock = setInterval(() => (this.now = Date.now()), 1000);
 
             await this.loadBlocked();
