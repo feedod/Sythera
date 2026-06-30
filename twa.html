@@ -1,0 +1,3456 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"
+    />
+    <meta name="color-scheme" content="dark" />
+
+    <link rel="preconnect" href="https://esm.sh" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="https://unpkg.com/swiper@11/swiper-bundle.min.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+        --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+        --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        background: #000;
+      }
+      body {
+        color: #f5f5f7;
+        font-family:
+          ui-rounded, "SF Pro Rounded", "Nunito", -apple-system,
+          BlinkMacSystemFont, system-ui, sans-serif;
+        font-optical-sizing: auto;
+        letter-spacing: -0.011em;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      ::selection {
+        background: rgba(245, 245, 247, 0.22);
+      }
+      [x-cloak] {
+        display: none !important;
+      }
+      video {
+        pointer-events: none;
+      }
+      video::-webkit-media-controls,
+      video::-webkit-media-controls-enclosure,
+      video::-webkit-media-controls-panel,
+      video::-webkit-media-controls-play-button {
+        display: none !important;
+        -webkit-appearance: none !important;
+        opacity: 0 !important;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      dialog {
+        position: fixed;
+        inset: 0;
+        margin: 0;
+        padding: 0;
+        width: 100vw;
+        height: 100svh;
+        max-width: 100vw;
+        max-height: 100svh;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        overflow: clip;
+      }
+      dialog::backdrop {
+        background: rgba(0, 0, 0, 0.55);
+        -webkit-backdrop-filter: blur(5px) saturate(120%);
+        backdrop-filter: blur(5px) saturate(120%);
+        opacity: 0;
+        transition: opacity 0.4s var(--ease-out);
+      }
+      dialog.dialog-shown::backdrop {
+        opacity: 1;
+      }
+      dialog.onboard::backdrop {
+        background: transparent;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+      }
+      dialog.composer::backdrop {
+        background: rgba(0, 0, 0, 0.6);
+        -webkit-backdrop-filter: blur(12px) saturate(120%);
+        backdrop-filter: blur(12px) saturate(120%);
+      }
+      .sheet-panel {
+        translate: 0 100%;
+        transition: translate 0.46s var(--ease-spring);
+        touch-action: pan-y;
+        -webkit-overflow-scrolling: touch;
+      }
+      .dialog-shown .sheet-panel {
+        translate: 0 0;
+      }
+      .composer-panel {
+        translate: 0 14px;
+        opacity: 0;
+        transition:
+          translate 0.28s var(--ease-spring),
+          opacity 0.28s ease;
+      }
+      .dialog-shown .composer-panel {
+        translate: 0 0;
+        opacity: 1;
+      }
+      .fade-panel {
+        opacity: 0;
+        transition: opacity 0.4s ease;
+      }
+      .dialog-shown .fade-panel {
+        opacity: 1;
+      }
+      #toasts {
+        inset: auto 0 0 0;
+        width: auto;
+        height: auto;
+        max-width: 100vw;
+        margin: 0;
+        border: 0;
+        background: transparent;
+        overflow: visible;
+      }
+    </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "alpinejs": "https://esm.sh/alpinejs@3",
+          "@alpinejs/focus": "https://esm.sh/@alpinejs/focus@3",
+          "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2",
+          "@telegram-apps/sdk": "https://esm.sh/@telegram-apps/sdk@3",
+          "qrcode": "https://esm.sh/qrcode@1",
+          "valibot": "https://esm.sh/valibot@1",
+          "ky": "https://esm.sh/ky@1",
+          "dayjs": "https://esm.sh/dayjs@1",
+          "dayjs/plugin/relativeTime": "https://esm.sh/dayjs@1/plugin/relativeTime",
+          "dayjs/locale/ru": "https://esm.sh/dayjs@1/locale/ru",
+          "mitt": "https://esm.sh/mitt@3",
+          "immer": "https://esm.sh/immer@10",
+          "canvas-confetti": "https://esm.sh/canvas-confetti@1",
+          "browser-image-compression": "https://esm.sh/browser-image-compression@2",
+          "@formkit/auto-animate": "https://esm.sh/@formkit/auto-animate@0.8",
+          "@use-gesture/vanilla": "https://esm.sh/@use-gesture/vanilla@10",
+          "@tanstack/query-core": "https://esm.sh/@tanstack/query-core@5",
+          "nanostores": "https://esm.sh/nanostores@0.11",
+          "rxjs": "https://esm.sh/rxjs@7",
+          "rxjs/operators": "https://esm.sh/rxjs@7/operators",
+          "swiper": "https://esm.sh/swiper@11",
+          "swiper/modules": "https://esm.sh/swiper@11/modules",
+          "iconify-icon": "https://esm.sh/iconify-icon@2"
+        }
+      }
+    </script>
+
+    <style type="text/tailwindcss">
+      @theme {
+        --color-bg: #000000;
+        --color-fg: #f5f5f7;
+        --color-muted: #98989f;
+        --color-danger: #ff453a;
+        --color-warn: #ff9f0a;
+        --color-accent: #f5f5f7;
+        --color-on-accent: #0a0a0a;
+        --font-sans:
+          ui-rounded, "SF Pro Rounded", "Nunito", -apple-system,
+          BlinkMacSystemFont, system-ui, sans-serif;
+        --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+        --animate-rise: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+        --animate-shot: shot 0.5s cubic-bezier(0.32, 0.72, 0, 1) both;
+        --animate-spin-slow: spin 0.9s linear infinite;
+        --animate-float: float 9s ease-in-out infinite;
+        @keyframes rise {
+          from { opacity: 0; translate: 0 12px; scale: 0.985; filter: blur(4px); }
+          to { opacity: 1; translate: 0 0; scale: 1; filter: blur(0); }
+        }
+        @keyframes shot {
+          from { opacity: 0; scale: 1.06; }
+          to { opacity: 1; scale: 1; }
+        }
+        @keyframes float {
+          0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+          50% { transform: translate3d(0, -28px, 0) scale(1.08); }
+        }
+      }
+      @layer base {
+        body {
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          text-rendering: optimizeLegibility;
+          -webkit-tap-highlight-color: transparent;
+          -webkit-user-select: none;
+          user-select: none;
+          touch-action: manipulation;
+          overscroll-behavior: none;
+        }
+        :where(button, a, summary, [role="button"], [tabindex], input) {
+          -webkit-tap-highlight-color: transparent;
+        }
+        :where(button, a, summary, [role="button"], [tabindex], dialog):focus,
+        :where(button, a, summary, [role="button"], [tabindex], dialog):focus-visible {
+          outline: none;
+        }
+        :where(button, a, summary, [role="button"], label[role="button"]) {
+          transition: transform 0.2s var(--ease-spring);
+        }
+        :where(button, a, summary, [role="button"], label[role="button"]):active {
+          transform: scale(0.96);
+        }
+        @media (prefers-reduced-motion: reduce) {
+          :where(button, a, summary, [role="button"], label[role="button"]):active {
+            transform: none;
+          }
+        }
+      }
+      @layer components {
+        .safe-b { padding-bottom: var(--safe-bottom, env(safe-area-inset-bottom)); }
+        .safe-x {
+          padding-left: var(--safe-left, env(safe-area-inset-left));
+          padding-right: var(--safe-right, env(safe-area-inset-right));
+        }
+        .safe-t { padding-top: var(--safe-top, env(safe-area-inset-top)); }
+        .safe {
+          padding: var(--safe-top, env(safe-area-inset-top))
+            var(--safe-right, env(safe-area-inset-right))
+            var(--safe-bottom, env(safe-area-inset-bottom))
+            var(--safe-left, env(safe-area-inset-left));
+        }
+        .glass {
+          background: rgba(255, 255, 255, 0.07);
+          -webkit-backdrop-filter: blur(30px) saturate(190%) brightness(1.07);
+          backdrop-filter: blur(30px) saturate(190%) brightness(1.07);
+          box-shadow:
+            inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
+            inset 0 0 0 0.5px rgba(255, 255, 255, 0.05);
+        }
+        .glass-dark {
+          background: rgba(0, 0, 0, 0.34);
+          -webkit-backdrop-filter: blur(22px) saturate(160%);
+          backdrop-filter: blur(22px) saturate(160%);
+          box-shadow: inset 0 0.5px 0 0 rgba(255, 255, 255, 0.16);
+        }
+        .no-scrollbar {
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+        }
+      }
+    </style>
+
+    <script src="https://esm.sh/@tailwindcss/browser@4"></script>
+    <script type="module">
+      import Alpine from "alpinejs";
+      import focus from "@alpinejs/focus";
+      import { createClient } from "@supabase/supabase-js";
+      import QRCode from "qrcode";
+      import * as v from "valibot";
+      import ky from "ky";
+      import dayjs from "dayjs";
+      import relativeTime from "dayjs/plugin/relativeTime";
+      import "dayjs/locale/ru";
+      import mitt from "mitt";
+      import { produce, setAutoFreeze } from "immer";
+      import confetti from "canvas-confetti";
+      import imageCompression from "browser-image-compression";
+      import autoAnimate from "@formkit/auto-animate";
+      import { Gesture } from "@use-gesture/vanilla";
+      import { QueryClient } from "@tanstack/query-core";
+      import { atom } from "nanostores";
+      import { Subject } from "rxjs";
+      import { debounceTime } from "rxjs/operators";
+      import Swiper from "swiper";
+      import { Mousewheel, Keyboard } from "swiper/modules";
+      import "iconify-icon";
+      import {
+        init as initTelegram,
+        miniApp,
+        viewport,
+        swipeBehavior,
+        closingBehavior,
+        backButton,
+        cloudStorage,
+        hapticFeedback,
+        shareURL,
+        openTelegramLink,
+        downloadFile,
+        popup,
+        requestWriteAccess,
+        retrieveLaunchParams,
+        retrieveRawInitData,
+        shareStory,
+      } from "@telegram-apps/sdk";
+      import * as TG from "@telegram-apps/sdk";
+
+      /* ─────────────────────────────  Library setup  ───────────────────────────── */
+
+      dayjs.extend(relativeTime);
+      dayjs.locale("ru");
+      setAutoFreeze(false);
+      Alpine.plugin(focus);
+      addEventListener("touchstart", () => {}, { passive: true });
+
+      /* ─────────────────────────────  Configuration  ───────────────────────────── */
+
+      const CONFIG = {
+        SUPABASE_URL: "https://ljzbyeulrttcrphdxyaf.supabase.co",
+        SUPABASE_KEY: "sb_publishable_cYwx_MbDt32sXHTlHKZUuQ_OuvB9dem",
+        BOT_USERNAME: "SytheraBot",
+        SUPPORT_URL: "",
+        TOS_URL: "",
+        PRIVACY_URL: "",
+      };
+
+      /* ───────────────────────────────  Constants  ──────────────────────────────── */
+
+      const FRIEND_LIMIT = 30;
+      const REACTIONS = ["❤️", "🔥", "😂", "😮", "🥹"];
+      const SIGNED_TTL = 3600;
+      const UPLOAD_MAX_PX = 1080;
+      const CAPTION_MAX = 80;
+      const REPLY_MAX = 200;
+      const PAGE = 18;
+      const LOAD_AHEAD = 3;
+      const FRIENDS_PAGE = 8;
+      const REQ_PAGE = 5;
+      const PUBLISH_COOLDOWN_MS = 4000;
+      const REPLY_COOLDOWN_MS = 1500;
+      const MAX_ZOOM = 4;
+      const RECENT_THRESHOLD = 1000 * 60 * 60 * 24 * 3;
+
+      const PR = new Intl.PluralRules("ru");
+      const FRIEND_WORDS = { one: "друг", few: "друга", many: "друзей", other: "друзей" };
+
+      const PROFILE_MINI = "id, first_name, username, photo_url, last_seen_at, show_last_seen";
+      const MOMENT_SELECT =
+        "id, caption, image_path, recipient_ids, created_at, author:profiles!moments_author_id_fkey(*), reactions(emoji, user_id)";
+
+      const QR_OPTIONS = {
+        margin: 1,
+        width: 360,
+        errorCorrectionLevel: "M",
+        color: { dark: "#0a0a0a", light: "#ffffff" },
+      };
+
+      const REPORT_REASONS = [
+        { id: "spam", label: "Спам или реклама", icon: "lucide:megaphone" },
+        { id: "nsfw", label: "Контент 18+", icon: "lucide:eye-off" },
+        { id: "abuse", label: "Оскорбление", icon: "lucide:shield-alert" },
+        { id: "violence", label: "Насилие", icon: "lucide:flame" },
+        { id: "other", label: "Другое", icon: "lucide:flag" },
+      ];
+
+      const SHEETS = {
+        friendsOpen: "friendsDialog",
+        qrOpen: "qrDialog",
+        activityOpen: "activityDialog",
+        privacyOpen: "privacyDialog",
+        friendsListOpen: "friendsListDialog",
+        requestsOpen: "requestsDialog",
+        sentOpen: "sentDialog",
+        blockedOpen: "blockedDialog",
+        notifyOpen: "notifyDialog",
+        draftsOpen: "draftsDialog",
+        recipientsOpen: "recipientsDialog",
+        momentShareOpen: "momentShareDialog",
+        reportOpen: "reportDialog",
+      };
+
+      /* ─────────────────────────────  Validation  ───────────────────────────────── */
+
+      const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      const USERNAME_RE = /^[A-Za-z0-9_]{1,32}$/;
+      const TGID_RE = /^[0-9]{1,20}$/;
+
+      const isUuid = (s) => typeof s === "string" && UUID_RE.test(s);
+      const isUserKey = (s) =>
+        typeof s === "string" && (UUID_RE.test(s) || USERNAME_RE.test(s) || TGID_RE.test(s));
+
+      const Uuid = v.pipe(v.string(), v.regex(UUID_RE));
+      const AuthResponseSchema = v.looseObject({
+        token: v.pipe(v.string(), v.minLength(10)),
+        user: v.looseObject({ id: Uuid }),
+      });
+      const ReplyInputSchema = v.object({
+        momentId: Uuid,
+        text: v.pipe(v.string(), v.trim(), v.minLength(1), v.maxLength(REPLY_MAX)),
+      });
+      const FriendKeySchema = v.pipe(v.string(), v.check(isUserKey));
+      const InitDataSchema = v.pipe(v.string(), v.minLength(1));
+
+      const validate = (schema, value, label) => {
+        const r = v.safeParse(schema, value);
+        if (!r.success) throw new Error(`Некорректные данные (${label})`);
+        return r.output;
+      };
+      const validOrNull = (schema, value) => {
+        const r = v.safeParse(schema, value);
+        return r.success ? r.output : null;
+      };
+
+      /* ────────────────────────────────  Utilities  ─────────────────────────────── */
+
+      const log = (...a) => {
+        try {
+          console.error("[sythera]", ...a);
+        } catch {}
+      };
+
+      // Run a Telegram SDK call defensively — swallow sync throws and rejected promises.
+      const tg = (fn) => {
+        try {
+          const r = fn();
+          return r && typeof r.then === "function" ? r.catch((e) => (log("tg", e), undefined)) : r;
+        } catch (e) {
+          log("tg", e);
+          return undefined;
+        }
+      };
+
+      const uuid = () => crypto.randomUUID();
+
+      const clean = (text, max) =>
+        String(text ?? "")
+          .replace(/[\u0000-\u001F\u007F\u200B-\u200D\u2060\uFEFF]/g, "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, max);
+
+      const ago = (ts) => (ts ? dayjs(ts).fromNow() : "");
+      const seenLabel = (ts) => {
+        if (!ts) return "был(а) давно";
+        return Date.now() - new Date(ts).getTime() < RECENT_THRESHOLD ? "был(а) недавно" : "был(а) давно";
+      };
+
+      const is429 = (e) =>
+        e?.status === 429 ||
+        e?.statusCode === 429 ||
+        e?.context?.status === 429 ||
+        /\b429\b|too many requests|rate limit/i.test(String(e?.message ?? ""));
+
+      // Map a raw `profiles` row to the lightweight author shape used across the UI.
+      const toAuthor = (p) =>
+        p && {
+          id: p.id,
+          name: p.first_name || (p.username ? `@${p.username}` : "Без имени"),
+          username: p.username || null,
+          photoUrl: p.photo_url,
+          lastSeen: p.last_seen_at ?? null,
+          showLastSeen: p.show_last_seen ?? true,
+          allowDownload: p.allow_download ?? false,
+          allowRestory: p.allow_restory ?? false,
+        };
+
+      const compressImage = (file, opts = {}) =>
+        imageCompression(file, {
+          maxWidthOrHeight: opts.maxWidth ?? UPLOAD_MAX_PX,
+          initialQuality: opts.quality ?? 0.85,
+          fileType: "image/jpeg",
+          useWebWorker: false,
+          alwaysKeepResolution: false,
+        });
+
+      const makeQR = (text) => QRCode.toDataURL(text, QR_OPTIONS);
+
+      // Merge plain object slices into one component descriptor — preserving getters.
+      const compose = (...slices) => {
+        const target = {};
+        for (const slice of slices) Object.defineProperties(target, Object.getOwnPropertyDescriptors(slice));
+        return target;
+      };
+
+      /* ────────────────────────────────  Event bus  ─────────────────────────────── */
+
+      const emitter = mitt();
+      const bus = {
+        on: (type, handler) => emitter.on(type, handler),
+        emit: (type, detail) => emitter.emit(type, detail),
+      };
+      const toast = (text) => bus.emit("notify", { text });
+
+      /* ─────────────────────────────  Backend services  ─────────────────────────── */
+
+      let _authToken = null;
+      const setAuthToken = (t) => (_authToken = t);
+
+      const fnApi = ky.create({
+        prefixUrl: `${CONFIG.SUPABASE_URL}/functions/v1`,
+        timeout: 20000,
+        retry: { limit: 2, methods: ["post"], statusCodes: [429, 500, 502, 503], backoffLimit: 1000 },
+        hooks: {
+          beforeRequest: [
+            (req) => {
+              req.headers.set("apikey", CONFIG.SUPABASE_KEY);
+              req.headers.set("Authorization", `Bearer ${_authToken ?? CONFIG.SUPABASE_KEY}`);
+            },
+          ],
+        },
+      });
+
+      const callFn = async (name, body) => {
+        try {
+          const data = await fnApi.post(name, { json: body ?? {} }).json();
+          return { data, error: null };
+        } catch (e) {
+          let message = e?.message;
+          const status = e?.response?.status;
+          if (e?.response) {
+            try {
+              const j = await e.response.clone().json();
+              message = j?.error || j?.message || message;
+            } catch {}
+          }
+          return { data: null, error: { message, status } };
+        }
+      };
+
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { staleTime: 4000, gcTime: 60000, retry: 1, refetchOnWindowFocus: false },
+        },
+      });
+
+      /* ───────────────────────────────  Reactive store  ─────────────────────────── */
+
+      const $online = atom(new Set());
+
+      const store = Alpine.reactive({
+        moments: [],
+        friends: [],
+        blocked: [],
+        drafts: [],
+        requests: [],
+        sent: [],
+        onlineIds: new Set(),
+        momentsTotal: 0,
+        feedHasMore: false,
+
+        patch(p) {
+          Object.assign(this, typeof p === "function" ? p(this) : p);
+        },
+        setMoments(moments, extra = {}) {
+          this.moments = moments;
+          Object.assign(this, extra);
+        },
+        removeMoment(id) {
+          this.moments = produce(this.moments, (d) => d.filter((m) => m.id !== id));
+          this.momentsTotal = Math.max(0, this.momentsTotal - 1);
+        },
+        removeAuthorMoments(authorId) {
+          this.moments = produce(this.moments, (d) => d.filter((m) => m.author?.id !== authorId));
+        },
+        setFriends(friends) {
+          this.friends = friends;
+        },
+        setBlocked(blocked) {
+          this.blocked = blocked;
+        },
+        addBlocked(user) {
+          this.blocked = produce(this.blocked, (d) => [...d.filter((b) => b.id !== user.id), user]);
+        },
+        removeBlocked(id) {
+          this.blocked = produce(this.blocked, (d) => d.filter((b) => b.id !== id));
+        },
+        setDrafts(drafts) {
+          this.drafts = drafts;
+        },
+        removeDraft(id) {
+          this.drafts = produce(this.drafts, (d) => d.filter((x) => x.id !== id));
+        },
+        setRequests(requests) {
+          this.requests = requests;
+        },
+        removeRequest(id) {
+          this.requests = this.requests.filter((r) => r.id !== id);
+        },
+        setSent(sent) {
+          this.sent = sent;
+        },
+        removeSent(id) {
+          this.sent = this.sent.filter((r) => r.id !== id);
+        },
+        setOnline(ids) {
+          $online.set(new Set(ids));
+        },
+        isBlocked(id) {
+          return id != null && this.blocked.some((b) => b.id === id);
+        },
+        isFriend(id) {
+          return id != null && this.friends.some((f) => f.id === id);
+        },
+      });
+
+      $online.subscribe((set) => (store.onlineIds = set));
+      const st = () => store;
+
+      /* ────────────────────────────────  Device effects  ────────────────────────── */
+
+      const haptic = {
+        impact: (style = "light") => tg(() => hapticFeedback.impactOccurred(style)),
+        notify: (type = "success") => tg(() => hapticFeedback.notificationOccurred(type)),
+        select: () => tg(() => hapticFeedback.selectionChanged()),
+      };
+
+      const _heartShape = confetti.shapeFromText ? confetti.shapeFromText({ text: "❤️", scalar: 2.4 }) : null;
+      const heartBurst = (e) => {
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const x = (e?.clientX ?? innerWidth / 2) / innerWidth;
+        const y = (e?.clientY ?? innerHeight * 0.55) / innerHeight;
+        confetti({
+          particleCount: 12,
+          spread: 70,
+          startVelocity: 32,
+          gravity: 1.1,
+          scalar: 2.2,
+          ticks: 90,
+          origin: { x, y },
+          shapes: _heartShape ? [_heartShape] : undefined,
+          flat: true,
+          disableForReducedMotion: true,
+          zIndex: 60,
+        });
+      };
+
+      /* ─────────────────────────  Alpine directives & magics  ────────────────────── */
+
+      // x-sheet="closeFn()" — drag-to-dismiss for bottom sheets.
+      Alpine.directive("sheet", (el, { expression }, { evaluate, cleanup }) => {
+        let startY = 0;
+        let cur = 0;
+        let dragging = false;
+        const reset = () => {
+          el.style.transition = "";
+          el.style.transform = "";
+          cur = 0;
+          dragging = false;
+        };
+        const onStart = (e) => {
+          if (e.touches.length !== 1 || el.scrollTop > 0) return;
+          startY = e.touches[0].clientY;
+          dragging = true;
+          el.style.transition = "none";
+        };
+        const onMove = (e) => {
+          if (!dragging) return;
+          cur = e.touches[0].clientY - startY;
+          if (cur <= 0) {
+            el.style.transform = "";
+            return;
+          }
+          el.style.transform = `translateY(${cur}px)`;
+        };
+        const onEnd = () => {
+          if (!dragging) return;
+          const close = cur > 110;
+          reset();
+          if (close) {
+            haptic.select();
+            evaluate(expression);
+          }
+        };
+        el.addEventListener("touchstart", onStart, { passive: true });
+        el.addEventListener("touchmove", onMove, { passive: true });
+        el.addEventListener("touchend", onEnd);
+        el.addEventListener("touchcancel", reset);
+        cleanup(() => {
+          el.removeEventListener("touchstart", onStart);
+          el.removeEventListener("touchmove", onMove);
+          el.removeEventListener("touchend", onEnd);
+          el.removeEventListener("touchcancel", reset);
+        });
+      });
+
+      // $icon('pencil') → 'lucide:pencil'
+      Alpine.magic("icon", () => (name) => "lucide:" + String(name || "").replace("lucide:", ""));
+
+      // x-io[.half|.full|.once]="onVisible()" — IntersectionObserver trigger.
+      Alpine.directive("io", (el, { expression, modifiers }, { evaluate, cleanup }) => {
+        const threshold = modifiers.includes("half") ? 0.5 : modifiers.includes("full") ? 0.99 : 0.01;
+        const once = modifiers.includes("once");
+        const obs = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (!e.isIntersecting) continue;
+              evaluate(expression);
+              if (once) obs.unobserve(el);
+            }
+          },
+          { threshold },
+        );
+        obs.observe(el);
+        cleanup(() => obs.disconnect());
+      });
+
+      // x-avatar="user" — bind a user's photo with graceful fallback on error.
+      Alpine.directive("avatar", (el, { expression }, { evaluate, effect, cleanup }) => {
+        el.setAttribute("alt", "");
+        el.classList.add("absolute", "inset-0", "h-full", "w-full", "object-cover");
+        const onError = () => {
+          const obj = evaluate(expression);
+          if (obj) obj.photoUrl = null;
+        };
+        el.addEventListener("error", onError);
+        effect(() => {
+          const obj = evaluate(expression);
+          const url = obj?.photoUrl || null;
+          if (url) {
+            if (el.getAttribute("src") !== url) el.setAttribute("src", url);
+            el.style.display = "";
+          } else {
+            el.removeAttribute("src");
+            el.style.display = "none";
+          }
+        });
+        cleanup(() => el.removeEventListener("error", onError));
+      });
+
+      // x-flip — FLIP list animations via auto-animate.
+      Alpine.directive("flip", (el, {}, { cleanup }) => {
+        if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const controller = autoAnimate(el, { duration: 260, easing: "cubic-bezier(0.22, 1, 0.36, 1)" });
+        cleanup(() => controller?.destroy?.());
+      });
+
+      /* ════════════════════════════════════════════════════════════════════════════
+         App component — composed from focused, single-responsibility slices.
+         Every slice shares one reactive `this`, so cross-slice calls just work.
+         ════════════════════════════════════════════════════════════════════════════ */
+
+      // Read-only projections of the global store into component scope.
+      const storeBindings = () => ({
+        get moments() {
+          return store.moments;
+        },
+        get friends() {
+          return store.friends;
+        },
+        get blocked() {
+          return store.blocked;
+        },
+        get drafts() {
+          return store.drafts;
+        },
+        get requests() {
+          return store.requests;
+        },
+        get sent() {
+          return store.sent;
+        },
+        get onlineIds() {
+          return store.onlineIds;
+        },
+        get momentsTotal() {
+          return store.momentsTotal;
+        },
+        get feedHasMore() {
+          return store.feedHasMore;
+        },
+      });
+
+      /* ─────────────────────────────  Lifecycle & boot  ──────────────────────────── */
+
+      const lifecycle = () => ({
+        status: "loading",
+        error: "",
+        supabase: null,
+        token: null,
+        now: Date.now(),
+        startParam: null,
+        showOnboarding: false,
+        links: { support: CONFIG.SUPPORT_URL, tos: CONFIG.TOS_URL, privacy: CONFIG.PRIVACY_URL },
+        friendLimit: FRIEND_LIMIT,
+        reportReasons: REPORT_REASONS,
+        reactionList: REACTIONS,
+        ago,
+        initials: (p) => (p?.name || "?").trim().charAt(0).toUpperCase(),
+        me: {
+          id: null,
+          name: "",
+          username: null,
+          photoUrl: null,
+          notify: false,
+          status: "active",
+          blockedUntil: null,
+          blockReason: null,
+          showLastSeen: true,
+          showViews: true,
+          allowDownload: true,
+          allowRestory: true,
+          allowPublic: false,
+          notifyMoments: true,
+          notifyRequests: true,
+        },
+
+        async init() {
+          await this.boot();
+          try {
+            this._cleanup();
+            this.supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, {
+              accessToken: async () => this.token ?? CONFIG.SUPABASE_KEY,
+              auth: { persistSession: false, autoRefreshToken: false },
+            });
+            const { rawInitData, startParam } = this.launchContext();
+            this.startParam = startParam;
+            const session = await this.authenticate(rawInitData, startParam);
+            this.token = session.token;
+            setAuthToken(session.token);
+            this.me = { ...this.me, ...session.user };
+            await this.supabase.realtime.setAuth();
+            this.status = "ready";
+            this._clock = setInterval(() => (this.now = Date.now()), 1000);
+            await this.loadBlocked();
+            await Promise.all([this.loadFeed(), this.loadFriends(), this.loadRequests(), this.loadPrivacy()]);
+            this.loadDrafts();
+            this.subscribe();
+            this.subscribePresence();
+            await this.$nextTick();
+            this.initFeed();
+            this.initPinch();
+            this.watchChrome();
+            await this.handleStart();
+            this.syncChrome();
+            this.protectScreen();
+            await this.maybeOnboard();
+            if (!this.showOnboarding) this.syncWriteAccess();
+          } catch (e) {
+            this.error = String(e?.message ?? e);
+            this.status = "error";
+          }
+        },
+
+        destroy() {
+          this.stopCamera();
+          this.clearCaptured();
+          this._gesture?.destroy?.();
+          this._gesture = null;
+          this._cleanup();
+        },
+
+        _cleanup() {
+          clearInterval(this._heartbeat);
+          clearInterval(this._clock);
+          clearTimeout(this._snapTimer);
+          this._feedSub?.unsubscribe();
+          this._viewsSub?.unsubscribe();
+          this._feed$ = null;
+          this._views$ = null;
+          if (this.swiper) {
+            tg(() => this.swiper.destroy(true, true));
+            this.swiper = null;
+          }
+          if (this._onVisible) {
+            document.removeEventListener("visibilitychange", this._onVisible);
+            removeEventListener("pagehide", this._onVisible);
+            this._onVisible = null;
+          }
+          if (this.supabase) {
+            if (this.channel) tg(() => this.supabase.removeChannel(this.channel));
+            if (this.presence) tg(() => this.supabase.removeChannel(this.presence));
+          }
+          this.channel = null;
+          this.presence = null;
+        },
+
+        async boot() {
+          if (this._booted) return;
+          this._booted = true;
+          tg(() => initTelegram());
+          tg(() => {
+            if (!miniApp.mount.isAvailable()) return;
+            miniApp.mount();
+            if (miniApp.setHeaderColor.isAvailable()) miniApp.setHeaderColor("#000000");
+            if (miniApp.setBackgroundColor.isAvailable()) miniApp.setBackgroundColor("#000000");
+            if (miniApp.setBottomBarColor.isAvailable()) miniApp.setBottomBarColor("#000000");
+          });
+          if (tg(() => viewport.mount.isAvailable())) {
+            await tg(() => viewport.mount());
+            tg(() => viewport.expand.isAvailable() && viewport.expand());
+            await tg(() => viewport.requestFullscreen.isAvailable() && viewport.requestFullscreen());
+            this.bindSafeArea();
+          }
+          tg(() => TG.lockOrientation?.isAvailable?.() && TG.lockOrientation());
+          tg(() => {
+            if (!swipeBehavior.mount.isAvailable()) return;
+            swipeBehavior.mount();
+            if (swipeBehavior.disableVertical.isAvailable()) swipeBehavior.disableVertical();
+          });
+          tg(() => closingBehavior.mount.isAvailable() && closingBehavior.mount());
+          tg(() => {
+            if (!backButton.mount.isAvailable()) return;
+            backButton.mount();
+            if (backButton.onClick.isAvailable()) backButton.onClick(() => this.onBack());
+          });
+          if (cloudStorage.getItem.isAvailable()) {
+            const saved = await cloudStorage.getItem("facing").catch(() => null);
+            if (saved === "user" || saved === "environment") this.facing = saved;
+          }
+        },
+
+        bindSafeArea() {
+          const root = document.documentElement.style;
+          const apply = () => {
+            const s = tg(() => viewport.safeAreaInsets()) ?? {};
+            const c = tg(() => viewport.contentSafeAreaInsets()) ?? {};
+            const px = (a, b) => `${(a ?? 0) + (b ?? 0)}px`;
+            root.setProperty("--safe-top", px(s.top, c.top));
+            root.setProperty("--safe-bottom", px(s.bottom, c.bottom));
+            root.setProperty("--safe-left", px(s.left, c.left));
+            root.setProperty("--safe-right", px(s.right, c.right));
+            root.setProperty("--sa-top", `${s.top ?? 0}px`);
+            root.setProperty("--csa-top", `${c.top ?? 0}px`);
+          };
+          apply();
+          tg(() => viewport.safeAreaInsets.sub(apply));
+          tg(() => viewport.contentSafeAreaInsets.sub(apply));
+        },
+
+        launchContext() {
+          const lp = retrieveLaunchParams();
+          return { rawInitData: retrieveRawInitData() ?? "", startParam: lp.tgWebAppStartParam };
+        },
+
+        async authenticate(initData, startParam) {
+          validate(InitDataSchema, initData, "initData");
+          const { data, error } = await callFn("auth", { initData, startParam });
+          if (error) throw new Error(error.message || "Не удалось войти");
+          return validate(AuthResponseSchema, data, "auth");
+        },
+
+        protectScreen() {
+          tg(() => TG.postEvent?.("web_app_set_screenshot_protection", { enabled: true }));
+        },
+
+        parseStart(param) {
+          if (typeof param !== "string" || !param) return null;
+          if (param.startsWith("m_")) {
+            const id = param.slice(2);
+            return isUuid(id) ? { type: "moment", id } : null;
+          }
+          if (param.startsWith("u_")) {
+            const key = param.slice(2);
+            return isUserKey(key) ? { type: "user", key } : null;
+          }
+          const dash = param.indexOf("-");
+          if (dash > 0) {
+            const id = param.slice(dash + 1);
+            return isUuid(id) ? { type: "moment", id } : null;
+          }
+          return isUserKey(param) ? { type: "user", key: param } : null;
+        },
+
+        async handleStart() {
+          const ctx = this.parseStart(this.startParam);
+          if (!ctx) return;
+          if (ctx.type === "moment") return this.openMoment(ctx.id);
+          if (ctx.key === String(this.me.id) || ctx.key === this.me.username) return;
+          try {
+            const { error } = await callFn("friend-request", { key: ctx.key });
+            if (error) throw new Error(error.message);
+            haptic.notify("success");
+            this.notify("Заявка в друзья отправлена");
+            await this.loadSent();
+          } catch (e) {
+            log("handleStart", e);
+          }
+        },
+
+        async maybeOnboard() {
+          let seen;
+          if (cloudStorage.getItem.isAvailable()) seen = await cloudStorage.getItem("onboarded").catch(() => null);
+          this.showOnboarding = !seen;
+        },
+        finishOnboarding() {
+          haptic.impact();
+          this.showOnboarding = false;
+          if (cloudStorage.setItem.isAvailable()) cloudStorage.setItem("onboarded", "1").catch(() => {});
+          this.syncWriteAccess();
+        },
+
+        notify(text) {
+          toast(text);
+        },
+
+        async confirm(title, message, okText = "Удалить") {
+          if (!popup.open.isAvailable()) return false;
+          try {
+            const id = await popup.open({
+              title,
+              message,
+              buttons: [
+                { id: "ok", type: "destructive", text: okText },
+                { id: "cancel", type: "cancel" },
+              ],
+            });
+            return id === "ok";
+          } catch {
+            return false;
+          }
+        },
+
+        // Shared QR export: persist PNG to the public bucket, then hand off to Telegram.
+        async _downloadQR(dataUrl, key, filename) {
+          if (!downloadFile.isAvailable()) return this.notify("Недоступно в этой версии Telegram");
+          const blob = await (await fetch(dataUrl)).blob();
+          const up = await this.supabase.storage.from("qr").upload(key, blob, { contentType: "image/png", upsert: true });
+          if (up.error) return this.notify("Не удалось подготовить файл");
+          const { data } = this.supabase.storage.from("qr").getPublicUrl(key);
+          await downloadFile(data.publicUrl, filename);
+          haptic.notify("success");
+        },
+
+        get accountBlocked() {
+          if (this.me.status === "banned")
+            return {
+              restricted: false,
+              title: "Аккаунт заблокирован",
+              message: this.me.blockReason || "Доступ к Sythera ограничен.",
+              reason: null,
+            };
+          if (this.me.blockedUntil && new Date(this.me.blockedUntil).getTime() > this.now)
+            return { restricted: true, title: "Аккаунт ограничен", until: this.me.blockedUntil, reason: this.me.blockReason || null };
+          return null;
+        },
+        get blockCountdown() {
+          const ms = new Date(this.me.blockedUntil).getTime() - this.now;
+          if (ms <= 0) return "0с";
+          const s = Math.floor(ms / 1000);
+          const d = Math.floor(s / 86400);
+          const h = Math.floor((s % 86400) / 3600);
+          const m = Math.floor((s % 3600) / 60);
+          const ss = s % 60;
+          return [d && `${d}д`, h && `${h}ч`, m && `${m}м`, `${ss}с`].filter(Boolean).join(" ");
+        },
+      });
+
+      /* ─────────────────────  Navigation: screens, sheets, chrome  ───────────────── */
+
+      const navigation = () => ({
+        screen: "camera",
+        activeIndex: 0,
+        friendsOpen: false,
+        qrOpen: false,
+        activityOpen: false,
+        privacyOpen: false,
+        friendsListOpen: false,
+        requestsOpen: false,
+        sentOpen: false,
+        blockedOpen: false,
+        notifyOpen: false,
+        draftsOpen: false,
+        recipientsOpen: false,
+        momentShareOpen: false,
+        reportOpen: false,
+
+        get openSheets() {
+          return Object.keys(SHEETS).filter((k) => this[k]);
+        },
+        anySheetOpen() {
+          return this.openSheets.length > 0;
+        },
+
+        onBack() {
+          for (const key of Object.keys(SHEETS).reverse()) {
+            if (this[key]) {
+              this[key] = false;
+              return;
+            }
+          }
+          if (this.composer.open) return this.closeComposer();
+          if (this.captured) return this.retake();
+          if (this.screen === "feed") return this.toCamera();
+        },
+
+        syncBack() {
+          tg(() => {
+            const visible = this.anySheetOpen() || this.composer.open || !!this.captured || this.screen === "feed";
+            if (visible && backButton.show.isAvailable()) backButton.show();
+            else if (backButton.hide.isAvailable()) backButton.hide();
+          });
+        },
+        syncChrome() {
+          tg(() => {
+            if (!closingBehavior.enableConfirmation.isAvailable()) return;
+            this.captured ? closingBehavior.enableConfirmation() : closingBehavior.disableConfirmation();
+          });
+        },
+
+        toggleDialog(ref, open) {
+          const d = this.$refs[ref];
+          if (!d) return;
+          clearTimeout(d._closeTimer);
+          if (open) {
+            if (!d.open) tg(() => d.showModal());
+            void d.offsetWidth;
+            d.classList.add("dialog-shown");
+          } else {
+            d.classList.remove("dialog-shown");
+            d._closeTimer = setTimeout(() => d.open && tg(() => d.close()), 360);
+          }
+        },
+
+        watchChrome() {
+          if (this._chromeWatched) return;
+          this._chromeWatched = true;
+          this.$watch("moments", () => this.onFeedChange());
+          this.$watch("captured", () => {
+            this.syncBack();
+            this.lockSwipe();
+          });
+          this.$watch("screen", () => this.syncBack());
+          for (const [key, ref] of Object.entries(SHEETS)) {
+            this.$watch(key, (open) => {
+              this.syncBack();
+              this.lockSwipe();
+              this.toggleDialog(ref, open);
+            });
+          }
+          this.$watch("showOnboarding", (open) => this.toggleDialog("onboardDialog", open));
+          this.syncBack();
+        },
+
+        toCamera() {
+          if (this.captured) return;
+          this.slideTo(0);
+        },
+        toFeed() {
+          if (this.captured) return;
+          this.slideTo(1);
+        },
+      });
+
+      /* ───────────────────────────  Feed: swiper & moments  ──────────────────────── */
+
+      const feed = () => ({
+        swiper: null,
+        feedLimit: PAGE,
+        loadingMore: false,
+        _snapTo: null,
+        _snapTimer: null,
+
+        initFeed() {
+          const el = this.$refs.feed;
+          if (!el || this.swiper) return;
+          this.swiper = new Swiper(el, {
+            modules: [Mousewheel, Keyboard],
+            direction: "vertical",
+            slidesPerView: 1,
+            speed: 380,
+            resistanceRatio: 0,
+            threshold: 6,
+            followFinger: true,
+            observer: true,
+            observeParents: true,
+            mousewheel: { forceToAxis: true },
+            keyboard: { enabled: true },
+            on: {
+              slideChange: (sw) => {
+                if (this._snapTo != null) {
+                  if (sw.activeIndex === this._snapTo) {
+                    this._snapTo = null;
+                    clearTimeout(this._snapTimer);
+                  }
+                  return;
+                }
+                if (sw.activeIndex !== this.activeIndex) this.onSlide(sw.activeIndex);
+              },
+            },
+          });
+          this.lockSwipe();
+        },
+
+        slideTo(idx, smooth = true) {
+          if (!this.swiper) return;
+          const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+          this._snapTo = idx;
+          clearTimeout(this._snapTimer);
+          this._snapTimer = setTimeout(() => (this._snapTo = null), 700);
+          this.swiper.slideTo(idx, smooth && !reduce ? 380 : 0);
+          this.onSlide(idx);
+        },
+
+        onSlide(idx) {
+          if (idx !== this.activeIndex) {
+            this.activeIndex = idx;
+            haptic.select();
+          }
+          const next = idx === 0 ? "camera" : "feed";
+          if (next !== this.screen) {
+            this.screen = next;
+            next === "feed" ? this.stopCamera() : this.resumeCamera();
+          }
+          this.pruneExternal(idx);
+        },
+
+        onFeedChange() {
+          this.syncBack();
+          this.lockSwipe();
+          if (this.swiper)
+            this.$nextTick(() => {
+              this.swiper.update();
+              const idx = Math.min(this.activeIndex, this.swiper.slides.length - 1);
+              if (this.swiper.activeIndex !== idx) this.swiper.slideTo(idx, 0);
+            });
+        },
+
+        lockSwipe() {
+          if (!this.swiper) return;
+          const locked = !!this.captured || this.anySheetOpen() || this.composer.open;
+          this.swiper.allowTouchMove = !locked;
+        },
+
+        pruneExternal(idx) {
+          const current = this.moments[idx - 1];
+          const stale = this.moments.some((m) => m._external && m !== current);
+          if (!stale) return;
+          st().setMoments(this.moments.filter((m) => !m._external || m === current));
+        },
+
+        onMomentVisible(m) {
+          this.markSeen(m);
+          if (this.moments.indexOf(m) >= this.moments.length - LOAD_AHEAD) this.loadMore();
+        },
+
+        async openMoment(id) {
+          let idx = this.moments.findIndex((m) => m.id === id);
+          if (idx === -1) {
+            await this.fetchMoment(id);
+            idx = this.moments.findIndex((m) => m.id === id);
+          }
+          if (idx === -1) return this.notify("Момент недоступен");
+          await this.$nextTick();
+          this.slideTo(idx + 1);
+        },
+
+        async fetchMoment(id) {
+          const { data } = await this.supabase.from("moments").select(MOMENT_SELECT).eq("id", id).maybeSingle();
+          if (!data || this.moments.some((m) => m.id === id)) return;
+          if (st().isBlocked(data.author?.id)) return;
+          const [url] = await this.signUrls([data.image_path]);
+          const built = this.buildMoment(data, null, url);
+          built._external = true;
+          st().setMoments([built, ...st().moments]);
+          await this.$nextTick();
+        },
+
+        buildMoment(m, was, url) {
+          const reactions = {};
+          const reactorIds = {};
+          let reacted = null;
+          for (const r of m.reactions ?? []) {
+            reactions[r.emoji] = (reactions[r.emoji] ?? 0) + 1;
+            (reactorIds[r.emoji] ??= []).push(r.user_id);
+            if (r.user_id === this.me.id) reacted = r.emoji;
+          }
+          const keepReact = was?._reactBusy;
+          return {
+            id: m.id,
+            caption: m.caption,
+            path: m.image_path,
+            url: was?.url ?? url ?? null,
+            loaded: was?.loaded ?? false,
+            createdAt: m.created_at,
+            author: toAuthor(m.author),
+            mine: m.author?.id === this.me.id,
+            recipientIds: m.recipient_ids ?? was?.recipientIds ?? [],
+            seen: m.seen ?? was?.seen ?? false,
+            views: was?.views ?? 0,
+            reactions: keepReact ? was.reactions : reactions,
+            reactorIds: keepReact ? was.reactorIds : reactorIds,
+            reacted: keepReact ? was.reacted : reacted,
+            _reactBusy: was?._reactBusy ?? false,
+            _external: was?._external ?? false,
+            _draftRecipients: was?._draftRecipients,
+          };
+        },
+
+        async loadFeed(force = false) {
+          if (force) queryClient.invalidateQueries({ queryKey: ["feed"] });
+          const { data, error, count } = await queryClient.fetchQuery({
+            queryKey: ["feed", this.feedLimit],
+            queryFn: () =>
+              this.supabase
+                .from("moments")
+                .select(MOMENT_SELECT, { count: "exact" })
+                .order("created_at", { ascending: false })
+                .limit(this.feedLimit),
+            staleTime: 2000,
+          });
+          if (error) return;
+          const state = st();
+          const prev = new Map(state.moments.map((m) => [m.id, m]));
+          const freshIds = new Set(data.map((m) => m.id));
+          const externals = state.moments.filter((m) => m._external && !freshIds.has(m.id));
+          const fresh = data.filter((m) => !prev.get(m.id)?.url);
+          const signed = await this.signUrls(fresh.map((m) => m.image_path));
+          const signMap = new Map(fresh.map((m, i) => [m.id, signed[i]]));
+          const built = data
+            .map((m) => this.buildMoment(m, prev.get(m.id), signMap.get(m.id)))
+            .filter((m) => !state.isBlocked(m.author?.id));
+          const total = count ?? data.length;
+          state.setMoments([...externals, ...built], { momentsTotal: total, feedHasMore: data.length < total });
+          await this.loadViews();
+        },
+
+        async loadViews() {
+          const moments = st().moments;
+          const ids = moments.map((m) => m.id);
+          if (!ids.length) return;
+          const { data } = await this.supabase.from("moment_views").select("moment_id, viewer_id").in("moment_id", ids);
+          if (!data) return;
+          const counts = {};
+          const seen = new Set();
+          const mine = this.me.id;
+          for (const v of data) {
+            counts[v.moment_id] = (counts[v.moment_id] ?? 0) + 1;
+            if (v.viewer_id === mine) seen.add(v.moment_id);
+          }
+          for (const m of moments) {
+            if (m.mine) m.views = counts[m.id] ?? 0;
+            else if (seen.has(m.id)) m.seen = true;
+          }
+          st().setMoments([...moments]);
+        },
+
+        async reSign(m) {
+          if (m._resigning || (m._reTries ?? 0) >= 2) return;
+          m._resigning = true;
+          m._reTries = (m._reTries ?? 0) + 1;
+          const [url] = await this.signUrls([m.path]);
+          m._resigning = false;
+          if (url) {
+            m.loaded = false;
+            m.url = url;
+          }
+        },
+
+        async loadMore() {
+          if (this.loadingMore || !this.feedHasMore) return;
+          this.loadingMore = true;
+          this.feedLimit += PAGE;
+          await this.loadFeed();
+          this.loadingMore = false;
+        },
+
+        async signUrls(paths) {
+          if (!paths.length) return [];
+          const { data } = await this.supabase.storage.from("moments").createSignedUrls(paths, SIGNED_TTL);
+          return (data ?? []).map((d) => d?.signedUrl ?? null);
+        },
+
+        isUnseen(m) {
+          return !!m && !m.mine && !m.seen;
+        },
+        markSeen(m) {
+          if (!m || m.mine || m.seen) return;
+          m.seen = true;
+          this.recordView(m.id);
+        },
+        async recordView(momentId) {
+          try {
+            await this.supabase
+              .from("moment_views")
+              .upsert({ moment_id: momentId, viewer_id: this.me.id }, { onConflict: "moment_id,viewer_id" });
+          } catch {}
+        },
+
+        totalReactions(m) {
+          let n = 0;
+          for (const e of REACTIONS) n += m.reactions[e] || 0;
+          return n;
+        },
+        get unseenCount() {
+          let n = 0;
+          for (const m of this.moments) if (this.isUnseen(m)) n++;
+          return n;
+        },
+      });
+
+      /* ─────────────────────  Camera: capture, torch, zoom, publish  ─────────────── */
+
+      const camera = () => ({
+        camGranted: false,
+        captured: null,
+        sending: false,
+        stream: null,
+        facing: "user",
+        torchSupported: false,
+        camStatus: "prompt",
+        flashOn: false,
+        flashing: false,
+        zoom: 1,
+        lastPublishAt: 0,
+        _gesture: null,
+        _starting: false,
+        _camToken: 0,
+
+        videoTrack() {
+          return this.stream?.getVideoTracks()[0] ?? null;
+        },
+        resumeCamera() {
+          if (this.captured) return;
+          this.camGranted ? this.startCamera() : (this.camStatus = "prompt");
+        },
+        async requestCamera() {
+          haptic.impact();
+          await this.startCamera();
+        },
+
+        async startCamera() {
+          if (this.screen !== "camera" || this.captured || this.stream) return;
+          const token = ++this._camToken;
+          this._starting = true;
+          this.camStatus = "starting";
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: { facingMode: this.facing, width: { ideal: 1440 }, height: { ideal: 1440 } },
+              audio: false,
+            });
+            this.camGranted = true;
+            if (token !== this._camToken || this.screen !== "camera" || this.captured) {
+              stream.getTracks().forEach((t) => t.stop());
+              return;
+            }
+            this.stream = stream;
+            this.zoom = 1;
+            await this.$nextTick();
+            const video = this.$refs.video;
+            if (!video) {
+              stream.getTracks().forEach((t) => t.stop());
+              this.stream = null;
+              return;
+            }
+            video.muted = true;
+            video.defaultMuted = true;
+            video.playsInline = true;
+            video.srcObject = this.stream;
+            await this.$nextTick();
+            await video.play().catch(() => {});
+            if (token === this._camToken) {
+              this.camStatus = "live";
+              this.refreshTorch();
+            }
+          } catch {
+            if (token === this._camToken) this.camStatus = "denied";
+          } finally {
+            if (token === this._camToken) this._starting = false;
+          }
+        },
+
+        stopCamera() {
+          this._camToken++;
+          this._starting = false;
+          this.disableTorch();
+          this.stream?.getTracks().forEach((t) => t.stop());
+          this.stream = null;
+          if (this.camStatus === "live" || this.camStatus === "starting") this.camStatus = "idle";
+          const video = this.$refs.video;
+          if (video) video.srcObject = null;
+        },
+
+        async flipCamera() {
+          haptic.impact();
+          this.facing = this.facing === "user" ? "environment" : "user";
+          if (cloudStorage.setItem.isAvailable()) cloudStorage.setItem("facing", this.facing).catch(() => {});
+          this.zoom = 1;
+          this.stopCamera();
+          await this.startCamera();
+        },
+
+        refreshTorch() {
+          this.torchSupported = !!tg(() => this.videoTrack()?.getCapabilities?.().torch);
+          if (this.flashOn && this.usesTorch())
+            tg(() => this.videoTrack()?.applyConstraints({ advanced: [{ torch: true }] }));
+        },
+        usesTorch() {
+          return this.facing === "environment" && this.torchSupported;
+        },
+        async toggleFlash() {
+          haptic.impact();
+          const next = !this.flashOn;
+          if (this.usesTorch()) {
+            const track = this.videoTrack();
+            try {
+              await track.applyConstraints({ advanced: [{ torch: next }] });
+            } catch {
+              return this.notify("Не удалось включить вспышку");
+            }
+          }
+          this.flashOn = next;
+        },
+        disableTorch() {
+          tg(() => this.videoTrack()?.applyConstraints({ advanced: [{ torch: false }] }));
+        },
+
+        initPinch() {
+          const target = this.$refs.camWrap;
+          if (!target || this._gesture) return;
+          this._gesture = new Gesture(
+            target,
+            {
+              onPinch: ({ offset: [scale], event }) => {
+                event?.preventDefault?.();
+                if (this.captured || this.camStatus !== "live") return;
+                this.zoom = Math.min(MAX_ZOOM, Math.max(1, scale));
+              },
+            },
+            {
+              pinch: { scaleBounds: { min: 1, max: MAX_ZOOM }, from: () => [this.zoom, 0], rubberband: false },
+              eventOptions: { passive: false },
+            },
+          );
+        },
+        resetZoom() {
+          this.zoom = 1;
+          haptic.select();
+        },
+
+        async capture() {
+          const video = this.$refs.video;
+          if (!video || !this.stream) return;
+          haptic.impact("medium");
+          if (this.flashOn && !this.usesTorch()) {
+            this.flashing = true;
+            await new Promise((r) => setTimeout(r, 220));
+          }
+          const size = Math.min(video.videoWidth, video.videoHeight);
+          const crop = size / this.zoom;
+          const canvas = document.createElement("canvas");
+          canvas.width = canvas.height = size;
+          const ctx = canvas.getContext("2d");
+          if (this.facing === "user") {
+            ctx.translate(size, 0);
+            ctx.scale(-1, 1);
+          }
+          const sx = (video.videoWidth - crop) / 2;
+          const sy = (video.videoHeight - crop) / 2;
+          ctx.drawImage(video, sx, sy, crop, crop, 0, 0, size, size);
+          const blob = await new Promise((res) => canvas.toBlob(res, "image/jpeg", 0.92));
+          this.captured = { blob, url: URL.createObjectURL(blob), caption: "", recipients: [] };
+          this.flashing = false;
+          this.zoom = 1;
+          this.syncChrome();
+        },
+
+        clearCaptured() {
+          if (this.captured?.url) URL.revokeObjectURL(this.captured.url);
+          this.captured = null;
+        },
+        retake() {
+          if (this.sending) return;
+          this.zoom = 1;
+          this.clearCaptured();
+          if (!this.stream) this.startCamera();
+          this.syncChrome();
+        },
+
+        async send() {
+          if (!this.captured || this.sending) return;
+          const wait = PUBLISH_COOLDOWN_MS - (Date.now() - this.lastPublishAt);
+          if (wait > 0) {
+            haptic.notify("warning");
+            return this.notify(`Подождите ${Math.ceil(wait / 1000)} с перед публикацией`);
+          }
+          this.sending = true;
+          this.syncChrome();
+          const draftId = this.captured.draftId;
+          const draftPath = this.captured.draftPath;
+          try {
+            const blob = await compressImage(this.captured.blob);
+            const path = `${this.me.id}/${uuid()}.jpg`;
+            for (let attempt = 1; ; attempt++) {
+              const up = await this.supabase.storage
+                .from("moments")
+                .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+              if (!up.error) break;
+              if (attempt >= 3 || is429(up.error)) throw up.error;
+              await new Promise((r) => setTimeout(r, 400 * attempt));
+            }
+            const ins = await this.supabase.from("moments").insert({
+              author_id: this.me.id,
+              image_path: path,
+              caption: clean(this.captured.caption, CAPTION_MAX) || null,
+              recipient_ids: this.captured.recipients.length ? [...this.captured.recipients] : null,
+            });
+            if (ins.error) throw ins.error;
+            if (draftId) {
+              await this.supabase.from("drafts").delete().eq("id", draftId);
+              if (draftPath) tg(() => this.supabase.storage.from("moments").remove([draftPath]));
+              st().removeDraft(draftId);
+            }
+            this.lastPublishAt = Date.now();
+            haptic.notify("success");
+            this.clearCaptured();
+            this.syncChrome();
+            await this.loadFeed(true);
+            this.toFeed();
+            this.notify("Опубликовано");
+          } catch (e) {
+            log("send", e);
+            haptic.notify("error");
+            this.notify(is429(e) ? "Слишком частая публикация, попробуйте позже" : "Не удалось опубликовать");
+          } finally {
+            this.sending = false;
+            this.syncChrome();
+          }
+        },
+      });
+
+      /* ──────────────────────────────────  Drafts  ──────────────────────────────── */
+
+      const drafts = () => ({
+        async loadDrafts() {
+          try {
+            const { data, error } = await this.supabase
+              .from("drafts")
+              .select("id, image_path, caption, recipient_ids, created_at, sort_order")
+              .eq("author_id", this.me.id)
+              .order("sort_order", { ascending: true })
+              .order("created_at", { ascending: false });
+            if (error) return st().setDrafts([]);
+            const urls = await this.signUrls((data ?? []).map((d) => d.image_path));
+            st().setDrafts(
+              (data ?? []).map((d, i) => ({
+                id: d.id,
+                path: d.image_path,
+                caption: d.caption,
+                recipientIds: d.recipient_ids ?? [],
+                createdAt: d.created_at,
+                _url: urls[i],
+              })),
+            );
+          } catch (e) {
+            log("loadDrafts", e);
+            st().setDrafts([]);
+          }
+        },
+        async openDrafts() {
+          haptic.select();
+          await this.loadDrafts();
+          this.draftsOpen = true;
+        },
+        closeDrafts() {
+          this.draftsOpen = false;
+        },
+
+        async saveDraft() {
+          if (!this.captured || this.sending) return;
+          this.sending = true;
+          try {
+            const blob = await compressImage(this.captured.blob);
+            const path = `${this.me.id}/drafts/${uuid()}.jpg`;
+            const up = await this.supabase.storage
+              .from("moments")
+              .upload(path, blob, { contentType: "image/jpeg", upsert: true });
+            if (up.error) throw up.error;
+            const ins = await this.supabase.from("drafts").insert({
+              author_id: this.me.id,
+              image_path: path,
+              caption: clean(this.captured.caption, CAPTION_MAX) || null,
+              recipient_ids: this.captured.recipients.length ? [...this.captured.recipients] : null,
+            });
+            if (ins.error) throw ins.error;
+            haptic.notify("success");
+            this.notify("Сохранено в черновики");
+            await this.loadDrafts();
+            this.retake();
+          } catch (e) {
+            log("saveDraft", e);
+            haptic.notify("error");
+            this.notify("Не удалось сохранить черновик");
+          } finally {
+            this.sending = false;
+          }
+        },
+
+        async openDraft(d) {
+          haptic.impact();
+          try {
+            const { data: file, error } = await this.supabase.storage.from("moments").download(d.path);
+            if (error || !file) throw error || new Error("download failed");
+            this.clearCaptured();
+            this.captured = {
+              blob: file,
+              url: URL.createObjectURL(file),
+              caption: d.caption ?? "",
+              recipients: (d.recipientIds ?? []).filter((id) => this.friends.some((f) => f.id === id)),
+              draftId: d.id,
+              draftPath: d.path,
+            };
+            this.draftsOpen = false;
+            this.zoom = 1;
+            this.toCamera();
+            this.syncChrome();
+          } catch (e) {
+            log("openDraft", e);
+            this.notify("Не удалось открыть черновик");
+          }
+        },
+
+        async deleteDraft(d) {
+          haptic.select();
+          const { error } = await this.supabase.from("drafts").delete().eq("id", d.id);
+          if (error) return this.notify("Не удалось удалить");
+          tg(() => this.supabase.storage.from("moments").remove([d.path]));
+          st().removeDraft(d.id);
+        },
+      });
+
+      /* ────────────────────  Composer: captions & replies input  ─────────────────── */
+
+      const composer = () => ({
+        composer: { open: false, kind: null, moment: null, value: "", placeholder: "", max: 0, withReactions: false },
+        lastReplyAt: 0,
+
+        openReply(moment) {
+          this.openComposer({
+            kind: "reply",
+            moment,
+            value: "",
+            placeholder: `Сообщение для ${moment.author?.name ?? ""}`.trim(),
+            max: REPLY_MAX,
+            withReactions: true,
+          });
+        },
+        openCaption() {
+          this.openComposer({ kind: "caption", value: this.captured?.caption ?? "", placeholder: "Добавьте подпись", max: CAPTION_MAX });
+        },
+        openEditCaption(moment) {
+          this.openComposer({ kind: "editCaption", moment, value: moment.caption ?? "", placeholder: "Подпись", max: CAPTION_MAX });
+        },
+
+        openComposer(opts) {
+          haptic.select();
+          this.composer = {
+            open: true,
+            kind: opts.kind,
+            moment: opts.moment ?? null,
+            value: opts.value ?? "",
+            placeholder: opts.placeholder ?? "",
+            max: opts.max ?? REPLY_MAX,
+            withReactions: !!opts.withReactions,
+          };
+          this.lockSwipe();
+          this.syncBack();
+          const d = this.$refs.composerDialog;
+          if (!d) return;
+          clearTimeout(d._closeTimer);
+          if (!d.open) tg(() => d.showModal());
+          void d.offsetWidth;
+          d.classList.add("dialog-shown");
+          this.$refs.composerInput?.focus();
+        },
+
+        commitComposer(submit) {
+          const c = this.composer;
+          if (c.kind === "reply" && c.moment) {
+            if (submit) this.sendReply(c.moment, c.value);
+          } else if (c.kind === "caption" && this.captured) {
+            this.captured.caption = clean(c.value, CAPTION_MAX);
+          } else if (c.kind === "editCaption" && c.moment) {
+            this.saveCaption(c.moment, c.value);
+          }
+          this.dismissComposer();
+        },
+        submitComposer() {
+          this.commitComposer(true);
+        },
+        closeComposer() {
+          this.commitComposer(false);
+        },
+        dismissComposer() {
+          this.composer.open = false;
+          this.composer.moment = null;
+          const d = this.$refs.composerDialog;
+          if (d) {
+            this.$refs.composerInput?.blur();
+            d.classList.remove("dialog-shown");
+            clearTimeout(d._closeTimer);
+            d._closeTimer = setTimeout(() => d.open && tg(() => d.close()), 240);
+          }
+          this.lockSwipe();
+          this.syncBack();
+        },
+
+        async sendReply(moment, raw) {
+          const text = clean(raw, REPLY_MAX);
+          if (!text) return;
+          const wait = REPLY_COOLDOWN_MS - (Date.now() - this.lastReplyAt);
+          if (wait > 0) {
+            haptic.notify("warning");
+            return this.notify(`Подождите ${Math.ceil(wait / 1000)} с перед ответом`);
+          }
+          try {
+            const payload = validOrNull(ReplyInputSchema, { momentId: moment?.id, text });
+            if (!payload) return this.notify("Не удалось отправить");
+            const { error } = await callFn("reply", payload);
+            if (error) throw new Error(error.message);
+            this.lastReplyAt = Date.now();
+            haptic.notify("success");
+            this.notify("Отправлено");
+          } catch (e) {
+            haptic.notify("error");
+            this.notify(is429(e) ? "Слишком много сообщений, попробуйте позже" : "Не удалось отправить");
+          }
+        },
+
+        async saveCaption(moment, raw) {
+          const caption = clean(raw, CAPTION_MAX) || null;
+          if (caption === (moment.caption ?? null)) return;
+          const { error } = await this.supabase.from("moments").update({ caption }).eq("id", moment.id);
+          if (error) return this.notify("Не удалось сохранить");
+          moment.caption = caption;
+          haptic.notify("success");
+        },
+      });
+
+      /* ─────────────────────────  Moments: per-moment actions  ───────────────────── */
+
+      const moments = () => ({
+        recipientsTarget: null,
+        momentShare: { moment: null, qr: "" },
+        reportTarget: null,
+        activity: { moment: null, list: [], loading: false },
+        lastTap: 0,
+        lastTapId: null,
+
+        async react(moment, emoji) {
+          if (moment._reactBusy) return;
+          haptic.impact();
+          const prev = { reacted: moment.reacted, counts: { ...moment.reactions } };
+          const next = moment.reacted === emoji ? null : emoji;
+          if (moment.reacted) moment.reactions[moment.reacted] = Math.max(0, (moment.reactions[moment.reacted] ?? 1) - 1);
+          if (next) moment.reactions[next] = (moment.reactions[next] ?? 0) + 1;
+          moment.reacted = next;
+          moment._reactBusy = true;
+          const { error } = next
+            ? await this.supabase
+                .from("reactions")
+                .upsert({ moment_id: moment.id, user_id: this.me.id, emoji: next }, { onConflict: "moment_id,user_id" })
+            : await this.supabase.from("reactions").delete().eq("moment_id", moment.id).eq("user_id", this.me.id);
+          moment._reactBusy = false;
+          if (error) {
+            moment.reacted = prev.reacted;
+            moment.reactions = prev.counts;
+            haptic.notify("error");
+          }
+        },
+
+        onImageTap(moment, e) {
+          if (moment.mine) return;
+          const now = Date.now();
+          const isDouble = now - this.lastTap < 300 && this.lastTapId === moment.id;
+          if (isDouble) {
+            this.lastTap = 0;
+            this.lastTapId = null;
+            if (moment.reacted !== "❤️") this.react(moment, "❤️");
+            heartBurst(e);
+            return;
+          }
+          this.lastTap = now;
+          this.lastTapId = moment.id;
+        },
+
+        canRecall(m) {
+          return !!m && m.mine && Date.now() - new Date(m.createdAt).getTime() < 5 * 60 * 1000;
+        },
+
+        async remove(moment) {
+          if (!(await this.confirm("Удалить момент?", "Это действие нельзя отменить."))) return;
+          const idx = this.moments.findIndex((m) => m.id === moment.id);
+          const { error } = await this.supabase.from("moments").delete().eq("id", moment.id);
+          if (error) return this.notify("Не удалось удалить");
+          tg(() => this.supabase.storage.from("moments").remove([moment.path]));
+          haptic.notify("warning");
+          st().removeMoment(moment.id);
+          await this.$nextTick();
+          if (!this.moments.length) return this.toCamera();
+          this.slideTo(Math.min(Math.max(1, idx), this.moments.length));
+        },
+
+        async save(moment) {
+          const allowed = moment.mine || moment.author?.allowDownload;
+          if (!allowed) return this.notify("Автор запретил сохранять этот момент");
+          if (!moment.path) return this.notify("Момент ещё загружается");
+          haptic.impact();
+          if (!downloadFile.isAvailable()) return this.notify("Недоступно в этой версии Telegram");
+          try {
+            const { data, error } = await this.supabase.storage.from("moments").createSignedUrl(moment.path, 600);
+            if (error || !data?.signedUrl) throw error || new Error("sign failed");
+            await downloadFile(data.signedUrl, `sythera-${moment.id}.jpg`);
+            haptic.notify("success");
+          } catch (e) {
+            log("save", e);
+            haptic.notify("error");
+            this.notify("Не удалось сохранить");
+          }
+        },
+
+        shareToChat(moment) {
+          haptic.impact();
+          if (!shareURL.isAvailable()) return this.notify("Недоступно в этой версии Telegram");
+          const link = this.momentLink(moment);
+          const text = moment.mine
+            ? moment.caption
+              ? `${moment.caption} — мой момент в Sythera`
+              : "Мой момент в Sythera"
+            : "Момент в Sythera";
+          tg(() => shareURL(link, text));
+        },
+
+        async shareToStory(moment) {
+          const allowed = moment.mine || moment.author?.allowRestory;
+          if (!allowed) return this.notify("Автор запретил репост этого момента");
+          if (!moment.path) return this.notify("Момент ещё загружается");
+          haptic.impact();
+          if (!shareStory.isAvailable()) return this.notify("Недоступно в этой версии Telegram");
+          try {
+            const { data, error } = await this.supabase.storage.from("moments").createSignedUrl(moment.path, 600);
+            if (error || !data?.signedUrl) throw error || new Error("sign failed");
+            const caption = ((moment.caption ? moment.caption + "\n" : "") + this.momentLink(moment)).slice(0, 200);
+            shareStory(data.signedUrl, { text: caption });
+            haptic.notify("success");
+          } catch (e) {
+            log("shareToStory", e);
+            haptic.notify("error");
+            this.notify("Не удалось поделиться");
+          }
+        },
+
+        momentLink(moment) {
+          const username = moment.author?.username;
+          const base = `https://t.me/${CONFIG.BOT_USERNAME}?startapp=`;
+          return username ? `${base}${username}-${moment.id}` : `${base}m_${moment.id}`;
+        },
+
+        async tryClipboard(text) {
+          try {
+            await navigator.clipboard.writeText(text);
+            return { error: null };
+          } catch (e) {
+            return { error: e };
+          }
+        },
+
+        // ── Share sheet ──────────────────────────────────────────────
+        async openMomentShare(moment) {
+          haptic.impact();
+          this.momentShare = { moment, qr: "" };
+          this.momentShareOpen = true;
+          try {
+            this.momentShare = { moment, qr: await makeQR(this.momentLink(moment)) };
+          } catch {}
+        },
+        closeMomentShare() {
+          this.momentShareOpen = false;
+        },
+        async copyMomentLink() {
+          if (!this.momentShare.moment) return;
+          haptic.impact();
+          const { error } = await this.tryClipboard(this.momentLink(this.momentShare.moment));
+          if (error) return this.notify("Не удалось скопировать");
+          haptic.notify("success");
+          this.notify("Ссылка скопирована");
+        },
+        shareMomentLink() {
+          if (this.momentShare.moment) this.shareToChat(this.momentShare.moment);
+        },
+        async downloadMomentQR() {
+          if (!this.momentShare.qr) return;
+          haptic.impact();
+          await this._downloadQR(this.momentShare.qr, `m-${this.momentShare.moment.id}.png`, "sythera-moment.png");
+        },
+
+        // ── Activity (views & reactions) ─────────────────────────────
+        async openActivity(moment) {
+          haptic.select();
+          this.activity = { moment, list: [], loading: true };
+          this.activityOpen = true;
+          const list = await this.loadActivity(moment);
+          if (this.activity.moment?.id === moment.id) this.activity = { moment, list, loading: false };
+        },
+        async loadActivity(moment) {
+          const { data, error } = await this.supabase.rpc("moment_activity", { p_moment_id: moment.id });
+          if (error || !data) return [];
+          return data.map((p) => ({ ...toAuthor(p), reaction: p.reaction || null }));
+        },
+        closeActivity() {
+          this.activityOpen = false;
+        },
+
+        // ── Recipients ───────────────────────────────────────────────
+        openRecipients(moment = null) {
+          if (!moment && !this.friends.length) return this.notify("Добавьте друзей, чтобы выбрать получателей");
+          haptic.select();
+          this.recipientsTarget = moment;
+          if (moment) moment._draftRecipients = [...(moment.recipientIds ?? [])];
+          this.recipientsOpen = true;
+        },
+        closeRecipients() {
+          this.recipientsOpen = false;
+        },
+        async saveRecipients() {
+          const moment = this.recipientsTarget;
+          this.recipientsOpen = false;
+          if (!moment) return;
+          const next = (moment._draftRecipients ?? []).filter((id) => this.friends.some((f) => f.id === id));
+          const { error } = await this.supabase
+            .from("moments")
+            .update({ recipient_ids: next.length ? next : null })
+            .eq("id", moment.id);
+          if (error) return this.notify("Не удалось сохранить список");
+          moment.recipientIds = next;
+          haptic.notify("success");
+          this.notify("Список обновлён");
+        },
+        toggleRecipient(id) {
+          haptic.select();
+          const set = this.recipientsTarget ? this.recipientsTarget._draftRecipients : this.captured?.recipients;
+          if (!set) return;
+          const i = set.indexOf(id);
+          i === -1 ? set.push(id) : set.splice(i, 1);
+        },
+        isRecipient(id) {
+          const set = this.recipientsTarget ? this.recipientsTarget._draftRecipients : this.captured?.recipients;
+          return !!set && set.includes(id);
+        },
+        get recipientCount() {
+          const set = this.recipientsTarget ? this.recipientsTarget._draftRecipients : this.captured?.recipients;
+          return set?.length ?? 0;
+        },
+
+        // ── Report ───────────────────────────────────────────────────
+        openReport(moment) {
+          if (!moment || moment.mine) return;
+          haptic.select();
+          this.reportTarget = moment;
+          this.reportOpen = true;
+        },
+        closeReport() {
+          this.reportOpen = false;
+        },
+        async submitReport(reason) {
+          const moment = this.reportTarget;
+          this.reportOpen = false;
+          if (!moment) return;
+          try {
+            const { error } = await this.supabase
+              .from("reports")
+              .insert({ moment_id: moment.id, reporter_id: this.me.id, reason });
+            if (error) throw error;
+            haptic.notify("success");
+            this.notify("Жалоба отправлена модераторам");
+          } catch (e) {
+            log("submitReport", e);
+            haptic.notify("error");
+            this.notify("Не удалось отправить жалобу");
+          }
+        },
+
+        // ── Friend request from a feed moment ────────────────────────
+        async addFriendFromMoment(moment) {
+          const author = moment.author;
+          if (!author || author.id === this.me.id) return;
+          haptic.impact();
+          try {
+            const { error } = await this.supabase
+              .from("friend_requests")
+              .insert({ from_id: this.me.id, to_id: author.id });
+            if (error) throw error;
+            haptic.notify("success");
+            this.notify("Заявка отправлена");
+          } catch (e) {
+            log("addFriendFromMoment", e);
+            haptic.notify("error");
+            this.notify(is429(e) ? "Слишком много запросов, попробуйте позже" : "Не удалось отправить заявку");
+          }
+        },
+      });
+
+      /* ────────────────  Social: friends, requests, blocks, presence  ────────────── */
+
+      const social = () => ({
+        channel: null,
+        presence: null,
+        friendsVisible: FRIENDS_PAGE,
+        requestsVisible: REQ_PAGE,
+        blockedVisible: FRIENDS_PAGE,
+        sentVisible: REQ_PAGE,
+
+        // ── Sheets ───────────────────────────────────────────────────
+        async openFriends() {
+          haptic.select();
+          this.friendsVisible = FRIENDS_PAGE;
+          this.requestsVisible = REQ_PAGE;
+          this.blockedVisible = FRIENDS_PAGE;
+          this.friendsOpen = true;
+          await this.loadRequests();
+        },
+        closeFriends() {
+          this.friendsOpen = false;
+        },
+        async openFriendsList() {
+          haptic.select();
+          this.friendsVisible = FRIENDS_PAGE;
+          this.friendsListOpen = true;
+          await this.loadFriends();
+        },
+        closeFriendsList() {
+          this.friendsListOpen = false;
+        },
+        async openRequests() {
+          haptic.select();
+          this.requestsVisible = REQ_PAGE;
+          this.requestsOpen = true;
+          await this.loadRequests();
+        },
+        closeRequests() {
+          this.requestsOpen = false;
+        },
+        async openSent() {
+          haptic.select();
+          this.sentVisible = REQ_PAGE;
+          this.sentOpen = true;
+          await this.loadSent();
+        },
+        closeSent() {
+          this.sentOpen = false;
+        },
+        async openBlocked() {
+          haptic.select();
+          this.blockedVisible = FRIENDS_PAGE;
+          this.blockedOpen = true;
+          await this.loadBlocked();
+        },
+        closeBlocked() {
+          this.blockedOpen = false;
+        },
+
+        // ── Friends ──────────────────────────────────────────────────
+        async loadFriends() {
+          const { data } = await this.supabase
+            .from("friendships")
+            .select(`friend:profiles!friendships_friend_id_fkey(${PROFILE_MINI})`)
+            .eq("user_id", this.me.id);
+          st().setFriends((data ?? []).map((f) => toAuthor(f.friend)).filter(Boolean));
+        },
+        async removeFriend(friend) {
+          if (!(await this.confirm("Удалить из друзей?", `${friend.name} больше не увидит ваши моменты.`))) return;
+          const me = this.me.id;
+          const { error } = await this.supabase
+            .from("friendships")
+            .delete()
+            .or(`and(user_id.eq.${me},friend_id.eq.${friend.id}),and(user_id.eq.${friend.id},friend_id.eq.${me})`);
+          if (error) return this.notify("Не удалось удалить");
+          haptic.notify("warning");
+          st().setFriends(this.friends.filter((f) => f.id !== friend.id));
+          await this.loadFeed(true);
+        },
+
+        // ── Incoming requests ────────────────────────────────────────
+        async loadRequests() {
+          try {
+            const { data, error } = await this.supabase
+              .from("friend_requests")
+              .select(`id, created_at, from:profiles!friend_requests_from_id_fkey(${PROFILE_MINI})`)
+              .eq("to_id", this.me.id)
+              .order("created_at", { ascending: false });
+            if (error) return st().setRequests([]);
+            st().setRequests(
+              (data ?? []).map((r) => ({ id: r.id, createdAt: r.created_at, user: toAuthor(r.from) })).filter((r) => r.user),
+            );
+          } catch {
+            st().setRequests([]);
+          }
+        },
+        async acceptRequest(req) {
+          haptic.impact();
+          const { error } = await this.supabase.rpc("accept_friend_request", { request_id: req.id });
+          if (error) {
+            haptic.notify("error");
+            return this.notify(is429(error) ? "Слишком много запросов, попробуйте позже" : "Не удалось принять заявку");
+          }
+          haptic.notify("success");
+          st().removeRequest(req.id);
+          await Promise.all([this.loadFriends(), this.loadFeed(true)]);
+        },
+        async declineRequest(req) {
+          haptic.select();
+          const { error } = await this.supabase.from("friend_requests").delete().eq("id", req.id).eq("to_id", this.me.id);
+          if (error) return this.notify("Не удалось отклонить");
+          st().removeRequest(req.id);
+        },
+
+        // ── Outgoing requests ────────────────────────────────────────
+        async loadSent() {
+          try {
+            const { data, error } = await this.supabase
+              .from("friend_requests")
+              .select(`id, created_at, to:profiles!friend_requests_to_id_fkey(${PROFILE_MINI})`)
+              .eq("from_id", this.me.id)
+              .order("created_at", { ascending: false });
+            if (error) return st().setSent([]);
+            st().setSent(
+              (data ?? []).map((r) => ({ id: r.id, createdAt: r.created_at, user: toAuthor(r.to) })).filter((r) => r.user),
+            );
+          } catch {
+            st().setSent([]);
+          }
+        },
+        async cancelSent(req) {
+          haptic.select();
+          const { error } = await this.supabase.from("friend_requests").delete().eq("id", req.id).eq("from_id", this.me.id);
+          if (error) return this.notify("Не удалось отменить");
+          st().removeSent(req.id);
+        },
+
+        // ── Blocking ─────────────────────────────────────────────────
+        async loadBlocked() {
+          const { data } = await this.supabase
+            .from("blocks")
+            .select(`blocked:profiles!blocks_blocked_id_fkey(${PROFILE_MINI})`)
+            .eq("blocker_id", this.me.id);
+          st().setBlocked((data ?? []).map((b) => toAuthor(b.blocked)).filter(Boolean));
+        },
+        async block(moment) {
+          const author = moment.author;
+          if (!author || author.id === this.me.id) return;
+          if (!(await this.confirm("Заблокировать?", `Вы больше не увидите моменты ${author.name}.`, "Заблокировать"))) return;
+          const idx = this.moments.findIndex((m) => m.id === moment.id);
+          const { error } = await this.supabase.rpc("block_user", { target_id: author.id });
+          if (error) return this.notify("Не удалось заблокировать");
+          haptic.notify("warning");
+          st().patch((s) => ({
+            blocked: [...s.blocked.filter((b) => b.id !== author.id), author],
+            requests: s.requests.filter((r) => r.user.id !== author.id),
+            moments: s.moments.filter((m) => m.author?.id !== author.id),
+            momentsTotal: Math.max(0, s.momentsTotal - 1),
+          }));
+          await this.$nextTick();
+          if (!this.moments.length) return this.toCamera();
+          this.slideTo(Math.min(Math.max(1, idx), this.moments.length));
+        },
+        async blockFriend(friend) {
+          if (this.isBlocked(friend.id)) return this.unblock(friend);
+          if (!(await this.confirm("Заблокировать?", `${friend.name} останется в друзьях, но не увидит ваши моменты и статус.`, "Заблокировать"))) return;
+          const { error } = await this.supabase.rpc("block_user", { target_id: friend.id });
+          if (error) return this.notify("Не удалось заблокировать");
+          haptic.notify("warning");
+          st().addBlocked(friend);
+          st().removeAuthorMoments(friend.id);
+          await this.loadFeed(true);
+        },
+        async unblock(user) {
+          const { error } = await this.supabase.from("blocks").delete().eq("blocker_id", this.me.id).eq("blocked_id", user.id);
+          if (error) return this.notify("Не удалось разблокировать");
+          haptic.select();
+          st().removeBlocked(user.id);
+          await this.loadFeed(true);
+        },
+
+        // ── Realtime: feed, reactions, views, requests ───────────────
+        subscribe() {
+          if (this.channel) tg(() => this.supabase.removeChannel(this.channel));
+          if (!this._feed$) {
+            this._feed$ = new Subject();
+            this._views$ = new Subject();
+            this._feedSub = this._feed$.pipe(debounceTime(250)).subscribe(() => {
+              queryClient.invalidateQueries({ queryKey: ["feed"] });
+              this.loadFeed();
+            });
+            this._viewsSub = this._views$.pipe(debounceTime(250)).subscribe(() => this.loadViews());
+          }
+          this.channel = this.supabase
+            .channel("sythera")
+            .on("postgres_changes", { event: "INSERT", schema: "public", table: "moments" }, () => {
+              haptic.notify("success");
+              this.scheduleFeedReload();
+            })
+            .on("postgres_changes", { event: "*", schema: "public", table: "reactions" }, () => this.scheduleFeedReload())
+            .on("postgres_changes", { event: "INSERT", schema: "public", table: "moment_views" }, () => this.scheduleViews())
+            .on("postgres_changes", { event: "*", schema: "public", table: "friend_requests", filter: `to_id=eq.${this.me.id}` }, () => this.loadRequests())
+            .subscribe();
+        },
+        scheduleFeedReload() {
+          this._feed$?.next();
+        },
+        scheduleViews() {
+          this._views$?.next();
+        },
+
+        // ── Presence ─────────────────────────────────────────────────
+        subscribePresence() {
+          this.presence = this.supabase.channel("presence:sythera", {
+            config: { presence: { key: String(this.me.id) } },
+          });
+          this.presence
+            .on("presence", { event: "sync" }, () => {
+              st().setOnline(Object.keys(this.presence.presenceState()));
+            })
+            .subscribe(async (status) => {
+              if (status === "SUBSCRIBED") await this.presence.track({ at: Date.now() });
+            });
+          this.touchPresence();
+          this._heartbeat = setInterval(() => this.touchPresence(), 60000);
+          this._onVisible = () => document.visibilityState === "visible" && this.touchPresence();
+          document.addEventListener("visibilitychange", this._onVisible);
+          addEventListener("pagehide", this._onVisible);
+        },
+        async touchPresence() {
+          const { error } = await this.supabase
+            .from("profiles")
+            .update({ last_seen_at: new Date().toISOString() })
+            .eq("id", this.me.id);
+          if (!error) this.me.lastSeen = new Date().toISOString();
+        },
+        isOnline(id) {
+          return id != null && id !== this.me.id && this.onlineIds.has(String(id));
+        },
+        isFriend(id) {
+          return st().isFriend(id);
+        },
+        isBlocked(id) {
+          return st().isBlocked(id);
+        },
+        presenceText(user) {
+          if (!user) return "";
+          if (this.isBlocked(user.id)) return "был(а) давно";
+          if (user.showLastSeen === false) return "";
+          if (this.isOnline(user.id)) return "в сети";
+          return user.lastSeen ? seenLabel(user.lastSeen) : "был(а) давно";
+        },
+
+        // ── Pagination & labels ──────────────────────────────────────
+        moreFriends() {
+          haptic.select();
+          this.friendsVisible += FRIENDS_PAGE;
+        },
+        moreRequests() {
+          haptic.select();
+          this.requestsVisible += REQ_PAGE;
+        },
+        moreBlocked() {
+          haptic.select();
+          this.blockedVisible += FRIENDS_PAGE;
+        },
+        moreSent() {
+          haptic.select();
+          this.sentVisible += REQ_PAGE;
+        },
+        get visibleFriends() {
+          return this.friends.slice(0, this.friendsVisible);
+        },
+        get visibleRequests() {
+          return this.requests.slice(0, this.requestsVisible);
+        },
+        get visibleBlocked() {
+          return this.blocked.slice(0, this.blockedVisible);
+        },
+        get visibleSent() {
+          return this.sent.slice(0, this.sentVisible);
+        },
+        get friendsLabel() {
+          const n = this.friends.length;
+          return `${n} ${FRIEND_WORDS[PR.select(n)]}`;
+        },
+        get hasNotice() {
+          return !this.me.notify || this.requests.length > 0;
+        },
+      });
+
+      /* ─────────────────  Profile: privacy, notifications, invite  ───────────────── */
+
+      const profile = () => ({
+        qrDataUrl: "",
+
+        // ── Privacy ──────────────────────────────────────────────────
+        async loadPrivacy() {
+          const { data } = await this.supabase.from("profiles").select("*").eq("id", this.me.id).maybeSingle();
+          if (!data) return;
+          this.me = {
+            ...this.me,
+            showLastSeen: data.show_last_seen ?? true,
+            showViews: data.show_views ?? true,
+            allowDownload: data.allow_download ?? true,
+            allowRestory: data.allow_restory ?? true,
+            allowPublic: data.allow_public ?? false,
+            notify: data.notify ?? false,
+            notifyMoments: data.notify_moments ?? true,
+            notifyRequests: data.notify_requests ?? true,
+          };
+        },
+        openPrivacy() {
+          haptic.select();
+          this.privacyOpen = true;
+        },
+        closePrivacy() {
+          this.privacyOpen = false;
+        },
+        async togglePrivacy(key, column) {
+          const next = !this.me[key];
+          this.me = { ...this.me, [key]: next };
+          haptic.select();
+          const { error } = await this.supabase.from("profiles").update({ [column]: next }).eq("id", this.me.id);
+          if (error) {
+            this.me = { ...this.me, [key]: !next };
+            haptic.notify("error");
+            this.notify("Не удалось сохранить");
+          }
+        },
+
+        // ── Notifications ────────────────────────────────────────────
+        openNotify() {
+          haptic.select();
+          this.notifyOpen = true;
+        },
+        closeNotify() {
+          this.notifyOpen = false;
+        },
+        async ensureWriteAccess() {
+          if (!requestWriteAccess.isAvailable()) return true;
+          try {
+            return (await requestWriteAccess()) === "allowed";
+          } catch {
+            return false;
+          }
+        },
+        async syncWriteAccess() {
+          if (!this.me.notify) return;
+          if (await this.ensureWriteAccess()) return;
+          await this.supabase.from("profiles").update({ notify: false }).eq("id", this.me.id);
+          this.me = { ...this.me, notify: false };
+        },
+        async toggleNotify() {
+          const next = !this.me.notify;
+          if (next && !(await this.ensureWriteAccess())) {
+            haptic.notify("error");
+            return this.notify("Разрешите боту писать вам, чтобы получать уведомления");
+          }
+          const { error } = await this.supabase.from("profiles").update({ notify: next }).eq("id", this.me.id);
+          if (error) return this.notify("Не удалось сохранить");
+          this.me = { ...this.me, notify: next };
+          haptic.select();
+        },
+
+        // ── Invite / QR ──────────────────────────────────────────────
+        profileLink(user) {
+          const u = user ?? this.me;
+          const key = u.username || `u_${u.id}`;
+          return `https://t.me/${CONFIG.BOT_USERNAME}?startapp=${key}`;
+        },
+        openInvite() {
+          if (this.friends.length >= this.friendLimit) {
+            haptic.notify("warning");
+            return this.notify(`Достигнут лимит — ${this.friendLimit} ${FRIEND_WORDS[PR.select(this.friendLimit)]}`);
+          }
+          this.openQR();
+        },
+        async openQR() {
+          haptic.select();
+          await this.renderQR();
+          this.qrOpen = true;
+        },
+        closeQR() {
+          this.qrOpen = false;
+        },
+        async renderQR() {
+          this.qrDataUrl = await makeQR(this.profileLink());
+        },
+        async copyLink() {
+          haptic.impact();
+          const { error } = await this.tryClipboard(this.profileLink());
+          if (error) return this.notify("Не удалось скопировать");
+          haptic.notify("success");
+          this.notify("Ссылка скопирована");
+        },
+        shareLink() {
+          haptic.impact();
+          if (!shareURL.isAvailable()) return this.notify("Недоступно в этой версии Telegram");
+          tg(() => shareURL(this.profileLink(), "Присоединяйтесь ко мне в Sythera"));
+        },
+        async downloadQR() {
+          haptic.impact();
+          await this._downloadQR(this.qrDataUrl, `${this.me.id}.png`, "sythera-qr.png");
+        },
+
+        // ── Misc actions ─────────────────────────────────────────────
+        openUserProfile(user) {
+          haptic.impact();
+          const username = user?.username;
+          if (!username)
+            return this.notify(
+              user?.id === this.me.id
+                ? "У вас не задано имя пользователя в Telegram"
+                : "У этого пользователя нет имени пользователя",
+            );
+          if (!openTelegramLink.isAvailable()) return this.notify("Недоступно в этой версии Telegram");
+          tg(() => openTelegramLink(`https://t.me/${username}`));
+        },
+        openUrl(url, telegram) {
+          haptic.impact();
+          if (!url) return this.notify("Ссылка скоро появится");
+          if (telegram) return tg(() => openTelegramLink.isAvailable() && openTelegramLink(url));
+          tg(() => TG.openLink?.isAvailable?.() && TG.openLink(url));
+        },
+        async addToHome() {
+          haptic.impact();
+          try {
+            if (!TG.addToHomeScreen?.isAvailable?.()) return this.notify("Недоступно в этой версии Telegram");
+            await TG.addToHomeScreen();
+          } catch (e) {
+            log("addToHome", e);
+            this.notify("Не удалось добавить на экран");
+          }
+        },
+        async deleteAccount() {
+          if (!(await this.confirm("Удалить аккаунт?", "Все ваши моменты, друзья и данные будут удалены безвозвратно.", "Удалить"))) return;
+          try {
+            const { error } = await callFn("delete-account");
+            if (error) throw new Error(error.message);
+            haptic.notify("success");
+            tg(() => miniApp.close.isAvailable() && miniApp.close());
+          } catch (e) {
+            log("deleteAccount", e);
+            haptic.notify("error");
+            this.notify("Не удалось удалить аккаунт");
+          }
+        },
+      });
+
+      /* ─────────────────────────  Component registration  ───────────────────────── */
+
+      Alpine.data("app", () =>
+        compose(
+          storeBindings(),
+          lifecycle(),
+          navigation(),
+          feed(),
+          camera(),
+          drafts(),
+          composer(),
+          moments(),
+          social(),
+          profile(),
+        ),
+      );
+
+      Alpine.data("toasts", () => ({
+        items: [],
+        init() {
+          bus.on("notify", (d) => this.add(d));
+        },
+        add(detail) {
+          const id = Date.now() + Math.random();
+          this.items.push({ id, text: detail.text });
+          this.show();
+          setTimeout(() => this.remove(id), 2600);
+        },
+        remove(id) {
+          this.items = this.items.filter((t) => t.id !== id);
+          if (!this.items.length) this.hide();
+        },
+        show() {
+          const el = this.$el;
+          if (el.showPopover && !el.matches(":popover-open")) tg(() => el.showPopover());
+        },
+        hide() {
+          const el = this.$el;
+          if (el.hidePopover && el.matches(":popover-open")) tg(() => el.hidePopover());
+        },
+      }));
+
+      /* ────────────────────────────────  Bootstrap  ─────────────────────────────── */
+
+      window.Alpine = Alpine;
+      Alpine.start();
+    </script>
+  </head>
+
+  <body x-data="app" class="h-svh overflow-hidden bg-bg font-sans text-fg">
+    <div x-show="status === 'loading'" class="fixed inset-0 grid place-items-center">
+      <p class="text-[2.75rem] font-black tracking-[-0.04em] text-fg motion-safe:animate-float">Sythera</p>
+    </div>
+
+    <div x-show="status === 'error'" x-cloak class="safe grid h-svh place-items-center px-8 text-center">
+      <div class="max-w-sm motion-safe:animate-rise">
+        <h1 class="text-2xl font-bold tracking-tight">Что-то пошло не так</h1>
+        <p class="mt-3 text-[15px] leading-relaxed text-muted" x-text="error"></p>
+        <button @click="status = 'loading'; init()" class="mt-6 rounded-full bg-accent px-6 py-3 text-[15px] font-semibold text-on-accent transition active:scale-95">
+          Повторить
+        </button>
+      </div>
+    </div>
+
+    <div x-show="status === 'ready'" x-cloak class="fixed inset-x-0 top-0 h-dvh overflow-hidden">
+      <div class="swiper h-dvh" x-ref="feed">
+        <div class="swiper-wrapper">
+        <div class="swiper-slide">
+            <section class="flex h-full flex-col items-center justify-center gap-9">
+              <div
+                x-ref="camWrap"
+                class="relative aspect-square w-full min-h-0 shrink overflow-hidden rounded-[2.75rem] bg-white/[0.04] shadow-[0_40px_90px_-30px_rgba(0,0,0,0.9)] touch-none"
+              >
+                <video
+                  x-show="camStatus === 'live' || camStatus === 'starting'"
+                  x-ref="video"
+                  playsinline
+                  muted
+                  disablepictureinpicture
+                  @playing="stream && (camStatus = 'live')"
+                  @loadedmetadata="$el.play().catch(() => {})"
+                  @pause="stream && $el.play().catch(() => {})"
+                  class="h-full w-full origin-center object-cover"
+                  :style="`transform: scale(${zoom})` + (facing === 'user' ? ' scaleX(-1)' : '')"
+                ></video>
+
+                <button
+                  x-show="!captured && camStatus === 'live' && zoom > 1.01"
+                  x-cloak
+                  @click="resetZoom()"
+                  class="glass-dark absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-[12px] font-bold transition active:scale-95"
+                >
+                  <iconify-icon aria-hidden="true" icon="lucide:search-x" class="text-[1rem]"></iconify-icon>
+                  <span x-text="zoom.toFixed(1) + '×'"></span>
+                  <span class="opacity-60">сброс</span>
+                </button>
+
+                <div x-show="flashing" x-cloak class="pointer-events-none absolute inset-0 z-20 bg-white"></div>
+
+                <div x-show="!captured && camStatus === 'starting'" class="absolute inset-0 grid place-items-center">
+                  <span class="size-8 rounded-full border-2 border-white/20 border-t-white/80 motion-safe:animate-spin-slow"></span>
+                </div>
+
+                <div x-show="!captured && camStatus === 'prompt'" x-cloak class="absolute inset-0 grid place-items-center px-8 text-center">
+                  <div class="motion-safe:animate-rise">
+                    <div class="mx-auto mb-4 grid size-14 place-items-center rounded-full border border-white/10 bg-white/5">
+                      <iconify-icon aria-hidden="true" icon="lucide:camera" class="text-[1.75rem] text-muted"></iconify-icon>
+                    </div>
+                    <p class="text-[15px] font-semibold">Доступ к камере</p>
+                    <p class="mx-auto mt-1 max-w-[15rem] text-sm leading-relaxed text-muted">Разрешите доступ, чтобы снимать моменты.</p>
+                    <button @click="requestCamera()" class="mt-5 rounded-full bg-accent px-6 py-3 text-[15px] font-semibold text-on-accent transition active:scale-95">
+                      Разрешить доступ
+                    </button>
+                  </div>
+                </div>
+
+                <img x-show="captured" x-cloak x-transition:enter="animate-shot" :src="captured?.url" alt="" class="absolute inset-0 h-full w-full object-cover" />
+
+                <template x-if="captured">
+                  <button
+                    @click="openCaption()"
+                    class="glass-dark absolute inset-x-4 bottom-4 truncate rounded-full border border-white/15 px-5 py-3.5 text-center text-[15px] font-medium transition active:scale-[0.98]"
+                    :class="captured.caption ? 'text-fg' : 'text-white/55'"
+                    x-text="captured.caption || 'Добавьте подпись'"
+                  ></button>
+                </template>
+
+                <template x-if="captured">
+                  <div class="absolute right-4 top-4 flex gap-2">
+                    <button @click="openRecipients()" aria-label="Получатели" class="glass-dark relative grid size-11 place-items-center rounded-full border border-white/15 text-fg transition active:scale-90">
+                      <iconify-icon aria-hidden="true" icon="lucide:users" class="text-[1.25rem]"></iconify-icon>
+                      <span x-show="recipientCount" x-cloak class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] font-black leading-none text-on-accent tabular-nums" x-text="recipientCount"></span>
+                    </button>
+                    <button @click="saveDraft()" aria-label="Сохранить в черновики" class="glass-dark grid size-11 place-items-center rounded-full border border-white/15 text-fg transition active:scale-90">
+                      <iconify-icon aria-hidden="true" icon="lucide:bookmark-plus" class="text-[1.25rem]"></iconify-icon>
+                    </button>
+                  </div>
+                </template>
+
+                <div x-show="!captured && camStatus === 'denied'" x-cloak class="absolute inset-0 grid place-items-center px-8 text-center">
+                  <div>
+                    <div class="mx-auto mb-4 grid size-14 place-items-center rounded-full border border-white/10 bg-white/5">
+                      <iconify-icon aria-hidden="true" icon="lucide:camera-off" class="text-[1.75rem] text-muted"></iconify-icon>
+                    </div>
+                    <p class="text-[15px] font-semibold">Нет доступа к камере</p>
+                    <p class="mx-auto mt-1 max-w-[16rem] text-sm leading-relaxed text-muted">Разрешите доступ к камере в настройках Telegram, затем повторите.</p>
+                    <button @click="requestCamera()" class="mt-5 rounded-full border border-white/15 px-6 py-3 text-[15px] font-semibold text-fg transition active:scale-95">Повторить</button>
+                  </div>
+                </div>
+              </div>
+
+              <div x-show="!captured" class="flex w-full max-w-[340px] items-center justify-between">
+                <div class="flex w-14 flex-col items-center gap-2">
+                  <button
+                    x-show="camStatus === 'live'"
+                    x-cloak
+                    @click="toggleFlash()"
+                    aria-label="Вспышка"
+                    class="grid size-12 place-items-center rounded-full transition active:scale-90"
+                    :class="flashOn ? 'text-yellow-300' : 'text-white/70 active:text-fg'"
+                  >
+                    <iconify-icon aria-hidden="true" class="text-[1.75rem]" :icon="$icon(flashOn ? 'lucide:zap' : 'lucide:zap-off')"></iconify-icon>
+                  </button>
+                  <button
+                    x-show="drafts.length"
+                    x-cloak
+                    @click="openDrafts()"
+                    aria-label="Черновики"
+                    class="relative grid size-12 place-items-center rounded-full text-white/70 transition active:scale-90 active:text-fg"
+                  >
+                    <iconify-icon aria-hidden="true" icon="lucide:layers" class="text-[1.75rem]"></iconify-icon>
+                    <span class="absolute right-0 top-0 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] font-black leading-none text-on-accent tabular-nums" x-text="drafts.length"></span>
+                  </button>
+                </div>
+
+                <button @click="capture()" :disabled="camStatus !== 'live'" aria-label="Снимок" class="grid size-[5.5rem] place-items-center rounded-full ring-[5px] ring-fg/85 transition active:scale-90 disabled:opacity-40">
+                  <span class="size-[4.4rem] rounded-full bg-fg transition active:scale-95"></span>
+                </button>
+
+                <button @click="flipCamera()" aria-label="Сменить камеру" class="grid size-14 place-items-center rounded-full text-white/70 transition active:scale-90 active:text-fg">
+                  <iconify-icon aria-hidden="true" icon="lucide:switch-camera" class="text-[2rem]"></iconify-icon>
+                </button>
+              </div>
+
+              <div x-show="captured" x-cloak class="flex w-full max-w-[340px] items-center justify-between">
+                <button @click="retake()" :disabled="sending" aria-label="Переснять" class="grid size-14 place-items-center rounded-full text-white/70 transition active:scale-90 active:text-fg disabled:opacity-40">
+                  <iconify-icon aria-hidden="true" icon="lucide:rotate-ccw" class="text-[2rem]"></iconify-icon>
+                </button>
+
+                <button @click="send()" :disabled="sending" aria-label="Опубликовать" class="grid size-[5.5rem] place-items-center rounded-full bg-accent text-on-accent shadow-[0_18px_40px_-12px_rgba(245,245,247,0.5)] transition active:scale-90 disabled:opacity-50">
+                  <iconify-icon x-show="!sending" aria-hidden="true" icon="lucide:send" class="text-[2rem]"></iconify-icon>
+                  <span x-show="sending" x-cloak class="size-7 rounded-full border-2 border-on-accent/30 border-t-on-accent motion-safe:animate-spin-slow"></span>
+                </button>
+
+                <button @click="openDrafts()" :disabled="sending" aria-label="Черновики" class="relative grid size-14 place-items-center rounded-full text-white/70 transition active:scale-90 active:text-fg disabled:opacity-40">
+                  <iconify-icon aria-hidden="true" icon="lucide:layers" class="text-[2rem]"></iconify-icon>
+                  <span x-show="drafts.length" x-cloak class="absolute right-1 top-1 grid h-5 min-w-5 place-items-center rounded-full bg-accent px-1 text-[11px] font-black leading-none text-on-accent tabular-nums" x-text="drafts.length"></span>
+                </button>
+              </div>
+            </section>
+          </div>
+
+          <template x-if="!moments.length">
+            <div class="swiper-slide">
+              <div class="flex h-full flex-col items-center justify-center px-8 text-center">
+                <div class="mx-auto max-w-xs motion-safe:animate-rise">
+                  <div class="mx-auto mb-5 grid size-16 place-items-center rounded-[1.5rem] border border-white/10 bg-white/5">
+                    <iconify-icon aria-hidden="true" icon="lucide:image" class="text-[2rem] text-muted"></iconify-icon>
+                  </div>
+                  <p class="text-[17px] font-bold">Здесь появятся моменты</p>
+                  <p class="mt-1.5 text-sm leading-relaxed text-muted">Сделайте первый снимок, чтобы поделиться им с друзьями.</p>
+                </div>
+              </div>
+            </div>
+          </template>
+
+          <template x-for="m in moments" :key="m.id">
+            <div class="swiper-slide">
+              <div x-io.half="onMomentVisible(m)" class="flex h-full flex-col items-center justify-center gap-4">
+                <div class="w-full max-w-[26rem] motion-safe:animate-rise">
+                  <div class="mb-3.5 flex items-center justify-center px-5">
+                    <button type="button" @click="openUserProfile(m.author)" class="flex min-w-0 items-center gap-2.5 transition active:scale-95">
+                      <span class="relative shrink-0">
+                        <span class="relative grid size-8 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-xs font-bold text-fg">
+                          <img x-avatar="m.author" />
+                          <span x-show="!m.author.photoUrl" x-text="initials(m.author)"></span>
+                        </span>
+                        <span x-show="isOnline(m.author.id)" x-cloak class="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-400 ring-2 ring-black"></span>
+                      </span>
+                      <span class="min-w-0 truncate text-[15px] font-bold leading-tight" x-text="m.mine ? 'Вы' : m.author.name"></span>
+                      <span class="shrink-0 text-xs text-muted" x-text="ago(m.createdAt)"></span>
+                    </button>
+                  </div>
+
+                  <div class="relative mx-5 aspect-square overflow-hidden rounded-[2.75rem] bg-white/5 shadow-[0_40px_90px_-30px_rgba(0,0,0,0.95)]" @click="onImageTap(m, $event)">
+                    <img
+                      :src="m.url"
+                      :alt="m.caption ? (m.author?.name + ': ' + m.caption) : ('Момент · ' + (m.author?.name || ''))"
+                      loading="lazy"
+                      decoding="async"
+                      @load="m.loaded = true"
+                      @error="reSign(m)"
+                      class="h-full w-full object-cover transition-opacity duration-500 motion-reduce:transition-none"
+                      :class="m.loaded ? 'opacity-100' : 'opacity-0'"
+                    />
+                    <p x-show="m.caption" class="glass-dark absolute inset-x-4 bottom-4 line-clamp-3 break-words rounded-2xl border border-white/15 px-4 py-2.5 text-center text-[15px] font-medium" x-text="m.caption"></p>
+                  </div>
+
+                  <div x-show="!m.mine" class="mt-4 px-5">
+                    <div class="glass flex items-center gap-1 rounded-full border border-white/10 p-1.5">
+                      <button @click="openReply(m)" class="flex min-w-0 flex-1 items-center gap-2 rounded-full px-4 py-2.5 text-left text-[15px] text-muted transition active:scale-[0.98]">
+                        <iconify-icon aria-hidden="true" icon="lucide:message-circle" class="shrink-0 text-[1.1rem]"></iconify-icon>
+                        <span class="truncate">Сообщение…</span>
+                      </button>
+                      <template x-for="e in reactionList" :key="e">
+                        <button @click="react(m, e)" class="relative grid size-9 shrink-0 place-items-center rounded-full text-xl transition active:scale-90" :class="m.reacted === e ? 'bg-white/15' : 'opacity-55 active:opacity-100'">
+                          <span x-text="e"></span>
+                          <span x-show="m.reactions[e]" class="absolute -right-1 -top-1 min-w-4 rounded-full bg-accent px-1 text-[10px] font-bold leading-4 text-on-accent tabular-nums" x-text="m.reactions[e]"></span>
+                        </button>
+                      </template>
+                    </div>
+                  </div>
+
+                  <div x-show="m.mine" class="mt-4 flex justify-center px-5">
+                    <button @click="openActivity(m)" class="glass flex max-w-full items-center gap-3 rounded-full border border-white/10 px-4 py-2 transition active:scale-[0.97]">
+                      <span x-show="m.views" class="flex items-center gap-1 text-muted">
+                        <iconify-icon aria-hidden="true" icon="lucide:eye" class="shrink-0 text-[1.1rem]"></iconify-icon>
+                        <span class="text-[13px] font-bold tabular-nums" x-text="m.views"></span>
+                      </span>
+                      <span x-show="totalReactions(m)" class="flex items-center gap-1 text-muted">
+                        <iconify-icon aria-hidden="true" icon="lucide:heart" class="shrink-0 text-[1.1rem]"></iconify-icon>
+                        <span class="text-[13px] font-bold tabular-nums" x-text="totalReactions(m)"></span>
+                      </span>
+                      <span x-show="!m.views && !totalReactions(m)" class="text-[13px] font-medium text-muted">Активность</span>
+                    </button>
+                  </div>
+
+                  <template x-if="m._external && !m.mine && !isFriend(m.author?.id)">
+                    <div class="mt-4 flex justify-center px-5">
+                      <button @click="addFriendFromMoment(m)" class="flex items-center gap-2 rounded-full bg-accent px-5 py-3 text-[15px] font-bold text-on-accent transition active:scale-95">
+                        <iconify-icon aria-hidden="true" icon="lucide:user-plus" class="text-[1.2rem]"></iconify-icon>
+                        Добавить в друзья
+                      </button>
+                    </div>
+                  </template>
+
+                  <div class="mt-4 flex justify-center px-5">
+                    <div class="glass flex items-center gap-1 rounded-full border border-white/10 p-1.5">
+                      <button @click="openMomentShare(m)" aria-label="Поделиться моментом" class="grid size-11 place-items-center rounded-full text-fg/70 transition active:scale-90 active:bg-white/10 active:text-fg">
+                        <iconify-icon aria-hidden="true" icon="lucide:send" class="text-[1.25rem]"></iconify-icon>
+                      </button>
+                      <template x-if="m.mine">
+                        <div class="contents">
+                          <button x-show="m.recipientIds && m.recipientIds.length" @click="openRecipients(m)" aria-label="Изменить список" class="grid size-11 place-items-center rounded-full text-fg/70 transition active:scale-90 active:bg-white/10 active:text-fg">
+                            <iconify-icon aria-hidden="true" icon="lucide:users" class="text-[1.25rem]"></iconify-icon>
+                          </button>
+                          <button @click="shareToStory(m)" aria-label="Добавить в историю" class="grid size-11 place-items-center rounded-full text-fg/70 transition active:scale-90 active:bg-white/10 active:text-fg">
+                            <iconify-icon aria-hidden="true" icon="lucide:circle-plus" class="text-[1.25rem]"></iconify-icon>
+                          </button>
+                          <button @click="save(m)" aria-label="Сохранить" class="grid size-11 place-items-center rounded-full text-fg/70 transition active:scale-90 active:bg-white/10 active:text-fg">
+                            <iconify-icon aria-hidden="true" icon="lucide:download" class="text-[1.25rem]"></iconify-icon>
+                          </button>
+                          <button @click="openEditCaption(m)" aria-label="Изменить подпись" class="grid size-11 place-items-center rounded-full text-fg/70 transition active:scale-90 active:bg-white/10 active:text-fg">
+                            <iconify-icon aria-hidden="true" icon="lucide:pencil" class="text-[1.25rem]"></iconify-icon>
+                          </button>
+                          <button @click="remove(m)" :aria-label="canRecall(m) ? 'Отозвать' : 'Удалить'" class="grid size-11 place-items-center rounded-full text-danger transition active:scale-90 active:bg-danger/15">
+                            <iconify-icon aria-hidden="true" class="text-[1.25rem]" :icon="$icon(canRecall(m) ? 'lucide:undo-2' : 'lucide:trash-2')"></iconify-icon>
+                          </button>
+                        </div>
+                      </template>
+                      <template x-if="!m.mine">
+                        <div class="contents">
+                          <button x-show="m.author && m.author.allowRestory" @click="shareToStory(m)" aria-label="Добавить в историю" class="grid size-11 place-items-center rounded-full text-fg/70 transition active:scale-90 active:bg-white/10 active:text-fg">
+                            <iconify-icon aria-hidden="true" icon="lucide:circle-plus" class="text-[1.25rem]"></iconify-icon>
+                          </button>
+                          <button x-show="m.author && m.author.allowDownload" @click="save(m)" aria-label="Сохранить" class="grid size-11 place-items-center rounded-full text-fg/70 transition active:scale-90 active:bg-white/10 active:text-fg">
+                            <iconify-icon aria-hidden="true" icon="lucide:download" class="text-[1.25rem]"></iconify-icon>
+                          </button>
+                          <button @click="openReport(m)" aria-label="Пожаловаться" class="grid size-11 place-items-center rounded-full text-fg/70 transition active:scale-90 active:bg-white/10 active:text-fg">
+                            <iconify-icon aria-hidden="true" icon="lucide:flag" class="text-[1.25rem]"></iconify-icon>
+                          </button>
+                          <button @click="block(m)" aria-label="Заблокировать" class="grid size-11 place-items-center rounded-full text-danger transition active:scale-90 active:bg-danger/15">
+                            <iconify-icon aria-hidden="true" icon="lucide:user-x" class="text-[1.25rem]"></iconify-icon>
+                          </button>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <div x-show="screen === 'feed' && moments.length" x-cloak class="safe-b pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center px-4 pb-3">
+        <div class="glass rounded-full border border-white/10 px-3.5 py-1 text-[13px] font-bold tabular-nums text-fg/90">
+          <span x-text="`${Math.max(1, activeIndex)} / ${Math.max(1, momentsTotal)}`"></span>
+        </div>
+      </div>
+
+      <header x-show="screen === 'camera' && !captured" class="safe-t pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-col items-center gap-3 px-4">
+        <div class="h-2"></div>
+        <button @click="openFriends()" class="glass pointer-events-auto relative flex max-w-[80vw] items-center gap-2.5 rounded-full border border-white/10 py-1.5 pl-1.5 pr-4 transition active:scale-95">
+          <span x-show="requests.length" x-cloak class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-danger px-1 text-[11px] font-black leading-none text-white tabular-nums ring-2 ring-black" x-text="requests.length > 9 ? '9+' : requests.length"></span>
+          <span x-show="!requests.length && !me.notify" x-cloak class="absolute -right-1 -top-1 size-3.5 rounded-full bg-warn ring-2 ring-black"></span>
+          <span class="relative grid size-8 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-xs font-bold text-fg">
+            <img x-avatar="me" />
+            <span x-show="!me.photoUrl" x-text="initials(me)"></span>
+          </span>
+          <span class="truncate text-[15px] font-bold" x-text="friendsLabel"></span>
+          <iconify-icon aria-hidden="true" icon="lucide:chevron-down" class="shrink-0 text-[1rem] text-muted"></iconify-icon>
+        </button>
+      </header>
+
+      <div x-show="screen === 'camera' && !captured" class="safe-b pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center pb-4">
+        <button @click="toFeed()" class="pointer-events-auto flex flex-col items-center gap-1.5 transition active:scale-90" :class="unseenCount ? 'text-fg' : 'text-white/55'">
+          <span x-show="unseenCount" x-cloak x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-50" x-transition:enter-end="opacity-100 scale-100" class="grid h-7 min-w-7 place-items-center rounded-full bg-accent px-2 text-[13px] font-black tabular-nums text-on-accent shadow-lg shadow-black/40 motion-safe:animate-rise" x-text="unseenCount > 99 ? '99+' : unseenCount"></span>
+          <span class="text-[13px] font-bold uppercase tracking-wide" x-text="unseenCount ? (unseenCount === 1 ? 'Новый момент' : 'Новые моменты') : 'Моменты'"></span>
+          <iconify-icon aria-hidden="true" icon="lucide:chevron-down" class="text-[1.25rem] motion-safe:animate-bounce"></iconify-icon>
+        </button>
+      </div>
+
+      <div x-show="screen === 'feed' && !captured" x-cloak class="pointer-events-none absolute inset-x-0 z-20 flex items-center justify-center" style="top: var(--sa-top, env(safe-area-inset-top)); height: max(var(--csa-top, 0px), 3rem)">
+        <button @click="toCamera()" class="pointer-events-auto flex flex-col items-center gap-1 text-white/60 transition active:scale-90" aria-label="К камере">
+          <iconify-icon aria-hidden="true" icon="lucide:chevron-up" class="text-[1.25rem] motion-safe:animate-bounce"></iconify-icon>
+          <span class="text-[12px] font-bold uppercase tracking-wide">Камера</span>
+        </button>
+      </div>
+    </div>
+
+    <dialog x-ref="composerDialog" class="composer" @cancel.prevent="closeComposer()" @close="composer.open = false" @click="$event.target === $el && closeComposer()" aria-label="Сообщение">
+      <div class="composer-panel safe-b safe-x absolute inset-x-0 bottom-0 px-4 pb-3 pt-3">
+        <div class="mx-auto max-w-[480px]">
+          <div x-show="composer.withReactions" class="mb-3 flex justify-center">
+            <div class="glass flex items-center gap-1 rounded-full border border-white/10 p-1.5">
+              <template x-for="e in reactionList" :key="e">
+                <button @click="composer.moment && react(composer.moment, e)" class="grid size-11 place-items-center rounded-full text-2xl transition active:scale-90" :class="composer.moment && composer.moment.reacted === e ? 'bg-white/15' : 'opacity-70 active:opacity-100'">
+                  <span x-text="e"></span>
+                </button>
+              </template>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="relative min-w-0 flex-1">
+              <input x-ref="composerInput" x-model="composer.value" :maxlength="composer.max" :placeholder="composer.placeholder" enterkeyhint="send" @keydown.enter.prevent="submitComposer()" class="glass w-full rounded-full border border-white/10 py-3.5 pl-5 pr-14 text-[15px] text-fg placeholder:text-muted focus:outline-none" />
+              <span x-show="composer.value.length" class="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[11px] tabular-nums text-muted" x-text="composer.value.length + '/' + composer.max"></span>
+            </div>
+            <button @click="submitComposer()" :disabled="composer.kind === 'reply' && !composer.value.trim()" class="grid size-12 shrink-0 place-items-center rounded-full bg-accent text-on-accent transition active:scale-90 disabled:opacity-40" aria-label="Готово">
+              <iconify-icon aria-hidden="true" class="text-[1.25rem]" :icon="$icon(composer.kind === 'reply' ? 'lucide:send' : 'lucide:check')"></iconify-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="friendsDialog" @close="closeFriends()" @cancel.prevent="closeFriends()" @click="$event.target === $el && closeFriends()" aria-label="Профиль и друзья">
+      <div x-sheet="closeFriends()" x-trap.noscroll="friendsOpen" class="sheet-panel glass safe-b safe-x no-scrollbar absolute inset-x-0 bottom-0 max-h-[86svh] overflow-y-auto rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px]">
+          <button x-show="hasNotice" x-cloak @click="openNotify()" class="mb-3 flex w-full items-center gap-3 rounded-3xl border border-warn/30 bg-warn/10 px-4 py-3 text-left transition active:scale-[0.98]">
+            <iconify-icon aria-hidden="true" icon="lucide:bell-ring" class="text-[1.3rem] text-warn"></iconify-icon>
+            <span class="min-w-0 flex-1">
+              <span class="block text-[14px] font-bold" x-text="!me.notify ? 'Включите уведомления' : 'У вас новые заявки'"></span>
+              <span class="block text-[12px] text-muted" x-text="!me.notify ? 'Чтобы не пропускать моменты и заявки' : 'Откройте, чтобы ответить'"></span>
+            </span>
+            <iconify-icon aria-hidden="true" icon="lucide:chevron-right" class="shrink-0 text-muted"></iconify-icon>
+          </button>
+
+          <button type="button" @click="openUserProfile(me)" class="flex w-full items-center gap-3.5 rounded-3xl border border-white/10 bg-white/5 p-3.5 text-left transition active:scale-[0.98]">
+            <span class="relative grid shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-lg font-bold text-fg" style="width: 3.25rem; height: 3.25rem">
+              <img x-avatar="me" />
+              <span x-show="!me.photoUrl" x-text="initials(me)"></span>
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-[17px] font-bold" x-text="me.name"></p>
+              <p x-show="me.username" class="truncate text-sm text-muted" x-text="'@' + me.username"></p>
+            </div>
+            <iconify-icon aria-hidden="true" icon="lucide:chevron-right" class="shrink-0 text-[1.25rem] text-muted"></iconify-icon>
+          </button>
+
+          <button @click="openInvite()" class="mt-3 flex w-full items-center gap-3.5 rounded-3xl bg-accent px-5 py-4 text-left text-on-accent transition active:scale-[0.98]">
+            <iconify-icon aria-hidden="true" icon="lucide:qr-code" class="text-[1.5rem]"></iconify-icon>
+            <span class="min-w-0 flex-1">
+              <span class="block text-[16px] font-bold">Пригласить друга</span>
+              <span class="block text-[13px] font-medium text-on-accent/70">QR-код и ссылка для приглашения</span>
+            </span>
+            <iconify-icon aria-hidden="true" icon="lucide:chevron-right" class="shrink-0 text-[1.25rem] text-on-accent/70"></iconify-icon>
+          </button>
+
+          <div class="mt-3 grid grid-cols-2 gap-2.5">
+            <button @click="openFriendsList()" class="relative flex flex-col items-start gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 text-left transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:users" class="text-[1.4rem] text-fg/80"></iconify-icon>
+              <span class="text-[14px] font-semibold leading-tight">Друзья</span>
+              <span class="absolute right-3 top-3 text-[13px] font-bold tabular-nums text-muted" x-text="friends.length"></span>
+            </button>
+            <button @click="openRequests()" class="relative flex flex-col items-start gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 text-left transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:user-plus" class="text-[1.4rem] text-fg/80"></iconify-icon>
+              <span class="text-[14px] font-semibold leading-tight">Заявки</span>
+              <span x-show="requests.length" x-cloak class="absolute right-3 top-3 grid h-5 min-w-5 place-items-center rounded-full bg-danger px-1 text-[11px] font-black leading-none text-white tabular-nums" x-text="requests.length > 99 ? '99+' : requests.length"></span>
+            </button>
+            <button @click="openSent()" class="relative flex flex-col items-start gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 text-left transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:send" class="text-[1.4rem] text-fg/80"></iconify-icon>
+              <span class="text-[14px] font-semibold leading-tight">Отправленные</span>
+            </button>
+            <button @click="openBlocked()" class="relative flex flex-col items-start gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 text-left transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:user-x" class="text-[1.4rem] text-fg/80"></iconify-icon>
+              <span class="text-[14px] font-semibold leading-tight">Заблокированные</span>
+              <span x-show="blocked.length" class="absolute right-3 top-3 text-[13px] font-bold tabular-nums text-muted" x-text="blocked.length"></span>
+            </button>
+            <button @click="openNotify()" class="relative flex flex-col items-start gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 text-left transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:bell" class="text-[1.4rem] text-fg/80"></iconify-icon>
+              <span class="text-[14px] font-semibold leading-tight">Уведомления</span>
+              <span x-show="!me.notify" x-cloak class="absolute right-3 top-3 size-2.5 rounded-full bg-warn"></span>
+            </button>
+            <button @click="openPrivacy()" class="relative flex flex-col items-start gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 text-left transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:shield" class="text-[1.4rem] text-fg/80"></iconify-icon>
+              <span class="text-[14px] font-semibold leading-tight">Приватность</span>
+            </button>
+            <button @click="addToHome()" class="relative flex flex-col items-start gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 text-left transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:smartphone" class="text-[1.4rem] text-fg/80"></iconify-icon>
+              <span class="text-[14px] font-semibold leading-tight">На главный экран</span>
+            </button>
+            <button @click="openUrl(links.support, true)" class="relative flex flex-col items-start gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 text-left transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:life-buoy" class="text-[1.4rem] text-fg/80"></iconify-icon>
+              <span class="text-[14px] font-semibold leading-tight">Поддержка</span>
+            </button>
+            <button @click="openUrl(links.tos, false)" class="relative flex flex-col items-start gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 text-left transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:file-text" class="text-[1.4rem] text-fg/80"></iconify-icon>
+              <span class="text-[14px] font-semibold leading-tight">Условия</span>
+            </button>
+            <button @click="openUrl(links.privacy, false)" class="relative flex flex-col items-start gap-3 rounded-3xl border border-white/10 bg-white/5 p-4 text-left transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:scroll-text" class="text-[1.4rem] text-fg/80"></iconify-icon>
+              <span class="text-[14px] font-semibold leading-tight">Политика</span>
+            </button>
+          </div>
+
+          <button @click="deleteAccount()" class="mt-3 flex w-full items-center justify-center gap-2.5 rounded-3xl border border-danger/30 bg-danger/10 px-5 py-4 text-[15px] font-semibold text-danger transition active:scale-[0.98]">
+            <iconify-icon aria-hidden="true" icon="lucide:trash-2" class="shrink-0 text-[1.2rem]"></iconify-icon>
+            Удалить аккаунт
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="friendsListDialog" @close="closeFriendsList()" @cancel.prevent="closeFriendsList()" @click="$event.target === $el && closeFriendsList()" aria-label="Друзья">
+      <div x-sheet="closeFriendsList()" x-trap.noscroll="friendsListOpen" class="sheet-panel glass safe-b safe-x no-scrollbar absolute inset-x-0 bottom-0 max-h-[86svh] overflow-y-auto rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px]">
+          <p class="mb-5 text-center text-[17px] font-bold">Друзья</p>
+          <template x-if="!friends.length">
+            <p class="py-10 text-center text-sm text-muted">Пока нет друзей. Пригласите близких в Sythera.</p>
+          </template>
+          <ul x-flip class="space-y-2">
+            <template x-for="f in visibleFriends" :key="f.id">
+              <li class="flex items-center gap-3 rounded-3xl border border-white/10 bg-white/5 px-4 py-3">
+                <button type="button" @click="openUserProfile(f)" class="flex min-w-0 flex-1 items-center gap-3 text-left transition active:scale-[0.98]">
+                  <span class="relative shrink-0">
+                    <span class="relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-sm font-bold text-fg">
+                      <template x-if="!isBlocked(f.id)">
+                        <img x-avatar="f" />
+                      </template>
+                      <span x-show="isBlocked(f.id) || !f.photoUrl" x-text="initials(f)"></span>
+                    </span>
+                    <span x-show="!isBlocked(f.id) && isOnline(f.id)" x-cloak class="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-emerald-400 ring-2 ring-black"></span>
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-[15px] font-semibold" x-text="f.name"></span>
+                    <span x-show="presenceText(f)" class="block truncate text-[12px]" :class="!isBlocked(f.id) && isOnline(f.id) ? 'text-emerald-400' : 'text-muted'" x-text="presenceText(f)"></span>
+                  </span>
+                </button>
+                <span x-show="isBlocked(f.id)" x-cloak class="shrink-0 rounded-full bg-danger/15 px-2 py-0.5 text-[11px] font-bold text-danger">Заблокирован</span>
+                <div class="flex shrink-0 items-center gap-1">
+                  <button @click="blockFriend(f)" class="grid size-9 place-items-center rounded-full transition active:scale-90" :class="isBlocked(f.id) ? 'text-danger' : 'text-muted active:text-danger'" :aria-label="isBlocked(f.id) ? 'Разблокировать' : 'Заблокировать'">
+                    <iconify-icon aria-hidden="true" class="text-[1.2rem]" :icon="$icon(isBlocked(f.id) ? 'lucide:shield-off' : 'lucide:ban')"></iconify-icon>
+                  </button>
+                  <button @click="removeFriend(f)" class="grid size-9 place-items-center rounded-full text-muted transition active:scale-90" aria-label="Удалить друга">
+                    <iconify-icon aria-hidden="true" icon="lucide:x" class="text-[1.25rem]"></iconify-icon>
+                  </button>
+                </div>
+              </li>
+            </template>
+          </ul>
+          <button x-show="friends.length > friendsVisible" @click="moreFriends()" class="mt-2 w-full rounded-2xl border border-white/10 py-3 text-[14px] font-semibold text-muted transition active:scale-[0.98]">Показать ещё</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="requestsDialog" @close="closeRequests()" @cancel.prevent="closeRequests()" @click="$event.target === $el && closeRequests()" aria-label="Заявки в друзья">
+      <div x-sheet="closeRequests()" x-trap.noscroll="requestsOpen" class="sheet-panel glass safe-b safe-x no-scrollbar absolute inset-x-0 bottom-0 max-h-[86svh] overflow-y-auto rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px]">
+          <p class="mb-5 text-center text-[17px] font-bold">Заявки в друзья</p>
+          <template x-if="!requests.length">
+            <p class="py-10 text-center text-sm text-muted">Новых заявок нет.</p>
+          </template>
+          <ul x-flip class="space-y-2">
+            <template x-for="r in visibleRequests" :key="r.id">
+              <li class="flex items-center gap-3 rounded-3xl border border-white/10 bg-white/5 px-4 py-3">
+                <button type="button" @click="openUserProfile(r.user)" class="flex min-w-0 flex-1 items-center gap-3 text-left transition active:scale-[0.98]">
+                  <span class="relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-sm font-bold text-fg">
+                    <img x-avatar="r.user" />
+                    <span x-show="!r.user.photoUrl" x-text="initials(r.user)"></span>
+                  </span>
+                  <span class="min-w-0 flex-1 truncate text-[15px] font-semibold" x-text="r.user.name"></span>
+                </button>
+                <div class="flex shrink-0 items-center gap-2">
+                  <button @click="acceptRequest(r)" class="grid size-9 place-items-center rounded-full bg-accent text-on-accent transition active:scale-90" aria-label="Принять">
+                    <iconify-icon aria-hidden="true" icon="lucide:check" class="text-[1.2rem]"></iconify-icon>
+                  </button>
+                  <button @click="declineRequest(r)" class="grid size-9 place-items-center rounded-full border border-white/10 text-muted transition active:scale-90" aria-label="Отклонить">
+                    <iconify-icon aria-hidden="true" icon="lucide:x" class="text-[1.2rem]"></iconify-icon>
+                  </button>
+                </div>
+              </li>
+            </template>
+          </ul>
+          <button x-show="requests.length > requestsVisible" @click="moreRequests()" class="mt-2 w-full rounded-2xl border border-white/10 py-3 text-[14px] font-semibold text-muted transition active:scale-[0.98]">Показать ещё</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="sentDialog" @close="closeSent()" @cancel.prevent="closeSent()" @click="$event.target === $el && closeSent()" aria-label="Отправленные заявки">
+      <div x-sheet="closeSent()" x-trap.noscroll="sentOpen" class="sheet-panel glass safe-b safe-x no-scrollbar absolute inset-x-0 bottom-0 max-h-[86svh] overflow-y-auto rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px]">
+          <p class="mb-5 text-center text-[17px] font-bold">Отправленные заявки</p>
+          <template x-if="!sent.length">
+            <p class="py-10 text-center text-sm text-muted">Вы пока не отправляли заявок.</p>
+          </template>
+          <ul x-flip class="space-y-2">
+            <template x-for="r in visibleSent" :key="r.id">
+              <li class="flex items-center gap-3 rounded-3xl border border-white/10 bg-white/5 px-4 py-3">
+                <button type="button" @click="openUserProfile(r.user)" class="flex min-w-0 flex-1 items-center gap-3 text-left transition active:scale-[0.98]">
+                  <span class="relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-sm font-bold text-fg">
+                    <img x-avatar="r.user" />
+                    <span x-show="!r.user.photoUrl" x-text="initials(r.user)"></span>
+                  </span>
+                  <span class="min-w-0 flex-1 truncate text-[15px] font-semibold" x-text="r.user.name"></span>
+                </button>
+                <button @click="cancelSent(r)" class="shrink-0 rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-muted transition active:scale-95">Отменить</button>
+              </li>
+            </template>
+          </ul>
+          <button x-show="sent.length > sentVisible" @click="moreSent()" class="mt-2 w-full rounded-2xl border border-white/10 py-3 text-[14px] font-semibold text-muted transition active:scale-[0.98]">Показать ещё</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="blockedDialog" @close="closeBlocked()" @cancel.prevent="closeBlocked()" @click="$event.target === $el && closeBlocked()" aria-label="Заблокированные">
+      <div x-sheet="closeBlocked()" x-trap.noscroll="blockedOpen" class="sheet-panel glass safe-b safe-x no-scrollbar absolute inset-x-0 bottom-0 max-h-[86svh] overflow-y-auto rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px]">
+          <p class="mb-5 text-center text-[17px] font-bold">Заблокированные</p>
+          <template x-if="!blocked.length">
+            <p class="py-10 text-center text-sm text-muted">Заблокированных нет.</p>
+          </template>
+          <ul x-flip class="space-y-2">
+            <template x-for="b in visibleBlocked" :key="b.id">
+              <li class="flex items-center gap-3 rounded-3xl border border-white/10 bg-white/5 px-4 py-3">
+                <button type="button" @click="openUserProfile(b)" class="flex min-w-0 flex-1 items-center gap-3 text-left transition active:scale-[0.98]">
+                  <span class="relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-sm font-bold text-fg">
+                    <span x-text="initials(b)"></span>
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-[15px] font-semibold" x-text="b.name"></span>
+                    <span class="block text-[12px] text-muted">был(а) давно</span>
+                  </span>
+                </button>
+                <button @click="unblock(b)" class="shrink-0 rounded-full border border-white/10 px-4 py-2 text-xs font-bold text-fg transition active:scale-95">Разблокировать</button>
+              </li>
+            </template>
+          </ul>
+          <button x-show="blocked.length > blockedVisible" @click="moreBlocked()" class="mt-2 w-full rounded-2xl border border-white/10 py-3 text-[14px] font-semibold text-muted transition active:scale-[0.98]">Показать ещё</button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="notifyDialog" @close="closeNotify()" @cancel.prevent="closeNotify()" @click="$event.target === $el && closeNotify()" aria-label="Уведомления">
+      <div x-sheet="closeNotify()" x-trap.noscroll="notifyOpen" class="sheet-panel glass safe-b safe-x no-scrollbar absolute inset-x-0 bottom-0 max-h-[86svh] overflow-y-auto rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px]">
+          <p class="mb-5 text-center text-[17px] font-bold">Уведомления</p>
+          <div class="rounded-3xl border border-white/10 bg-white/5 px-5 py-4">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-[16px] font-medium">Push-уведомления</span>
+              <button @click="toggleNotify()" class="relative h-7 w-12 shrink-0 rounded-full border border-white/10 transition-colors" :class="me.notify ? 'bg-accent' : 'bg-white/10'" role="switch" :aria-checked="me.notify">
+                <span class="absolute top-1 size-5 rounded-full transition-all" :class="me.notify ? 'left-6 bg-on-accent' : 'left-1 bg-fg'"></span>
+              </button>
+            </div>
+            <p class="mt-1.5 text-[13px] leading-snug text-muted">Разрешите боту писать вам, чтобы получать уведомления в Telegram.</p>
+          </div>
+          <div class="mt-3 space-y-3" :class="!me.notify && 'pointer-events-none opacity-40'">
+            <div class="rounded-3xl border border-white/10 bg-white/5 px-5 py-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-[16px] font-medium">Новые моменты</span>
+                <button @click="togglePrivacy('notifyMoments', 'notify_moments')" class="relative h-7 w-12 shrink-0 rounded-full border border-white/10 transition-colors" :class="me.notify && me.notifyMoments ? 'bg-accent' : 'bg-white/10'" role="switch" :aria-checked="me.notify && me.notifyMoments">
+                  <span class="absolute top-1 size-5 rounded-full transition-all" :class="me.notify && me.notifyMoments ? 'left-6 bg-on-accent' : 'left-1 bg-fg'"></span>
+                </button>
+              </div>
+              <p class="mt-1.5 text-[13px] leading-snug text-muted">Когда друзья публикуют новый момент.</p>
+            </div>
+            <div class="rounded-3xl border border-white/10 bg-white/5 px-5 py-4">
+              <div class="flex items-center justify-between gap-3">
+                <span class="text-[16px] font-medium">Заявки в друзья</span>
+                <button @click="togglePrivacy('notifyRequests', 'notify_requests')" class="relative h-7 w-12 shrink-0 rounded-full border border-white/10 transition-colors" :class="me.notify && me.notifyRequests ? 'bg-accent' : 'bg-white/10'" role="switch" :aria-checked="me.notify && me.notifyRequests">
+                  <span class="absolute top-1 size-5 rounded-full transition-all" :class="me.notify && me.notifyRequests ? 'left-6 bg-on-accent' : 'left-1 bg-fg'"></span>
+                </button>
+              </div>
+              <p class="mt-1.5 text-[13px] leading-snug text-muted">Когда кто-то хочет добавить вас в друзья.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="qrDialog" @close="closeQR()" @cancel.prevent="closeQR()" @click="$event.target === $el && closeQR()" aria-label="QR-код и ссылка">
+      <div x-sheet="closeQR()" x-trap.noscroll="qrOpen" class="sheet-panel glass safe-b safe-x absolute inset-x-0 bottom-0 rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px]">
+          <p class="text-center text-[17px] font-bold">Пригласить друга</p>
+          <p class="mx-auto mt-1 max-w-[17rem] text-center text-sm leading-relaxed text-muted">Покажите код или отправьте ссылку — вы станете друзьями после подтверждения.</p>
+          <div class="mx-auto mt-5 w-fit rounded-2xl bg-white p-3">
+            <img x-show="qrDataUrl" :src="qrDataUrl" alt="QR-код профиля" class="block size-56 rounded-lg" />
+            <div x-show="!qrDataUrl" class="grid size-56 place-items-center">
+              <span class="size-7 rounded-full border-2 border-black/15 border-t-black/60 motion-safe:animate-spin-slow"></span>
+            </div>
+          </div>
+          <div class="mt-6 grid grid-cols-3 gap-2.5">
+            <button @click="copyLink()" class="flex flex-col items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 py-3.5 text-[13px] font-semibold transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:copy" class="text-[1.35rem]"></iconify-icon>
+              Скопировать
+            </button>
+            <button @click="shareLink()" class="flex flex-col items-center gap-1.5 rounded-2xl bg-accent py-3.5 text-[13px] font-semibold text-on-accent transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:send" class="text-[1.35rem]"></iconify-icon>
+              Поделиться
+            </button>
+            <button @click="downloadQR()" class="flex flex-col items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 py-3.5 text-[13px] font-semibold transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:download" class="text-[1.35rem]"></iconify-icon>
+              Скачать
+            </button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="privacyDialog" @close="closePrivacy()" @cancel.prevent="closePrivacy()" @click="$event.target === $el && closePrivacy()" aria-label="Конфиденциальность">
+      <div x-sheet="closePrivacy()" x-trap.noscroll="privacyOpen" class="sheet-panel glass safe-b safe-x no-scrollbar absolute inset-x-0 bottom-0 max-h-[86svh] overflow-y-auto rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px] space-y-3">
+          <p class="px-1 text-center text-[17px] font-bold">Конфиденциальность</p>
+          <div class="rounded-3xl border border-white/10 bg-white/5 px-5 py-4">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-[16px] font-medium">Показывать, когда я в сети</span>
+              <button @click="togglePrivacy('showLastSeen', 'show_last_seen')" class="relative h-7 w-12 shrink-0 rounded-full border border-white/10 transition-colors" :class="me.showLastSeen ? 'bg-accent' : 'bg-white/10'" role="switch" :aria-checked="me.showLastSeen">
+                <span class="absolute top-1 size-5 rounded-full transition-all" :class="me.showLastSeen ? 'left-6 bg-on-accent' : 'left-1 bg-fg'"></span>
+              </button>
+            </div>
+            <p class="mt-1.5 text-[13px] leading-snug text-muted">Взаимно: если выключить, вы не увидите время последнего захода друзей.</p>
+          </div>
+          <div class="rounded-3xl border border-white/10 bg-white/5 px-5 py-4">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-[16px] font-medium">Показывать в просмотрах</span>
+              <button @click="togglePrivacy('showViews', 'show_views')" class="relative h-7 w-12 shrink-0 rounded-full border border-white/10 transition-colors" :class="me.showViews ? 'bg-accent' : 'bg-white/10'" role="switch" :aria-checked="me.showViews">
+                <span class="absolute top-1 size-5 rounded-full transition-all" :class="me.showViews ? 'left-6 bg-on-accent' : 'left-1 bg-fg'"></span>
+              </button>
+            </div>
+            <p class="mt-1.5 text-[13px] leading-snug text-muted">Взаимно: если выключить, вы не увидите, кто смотрел моменты друзей.</p>
+          </div>
+          <div class="rounded-3xl border border-white/10 bg-white/5 px-5 py-4">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-[16px] font-medium">Разрешить скачивать мои моменты</span>
+              <button @click="togglePrivacy('allowDownload', 'allow_download')" class="relative h-7 w-12 shrink-0 rounded-full border border-white/10 transition-colors" :class="me.allowDownload ? 'bg-accent' : 'bg-white/10'" role="switch" :aria-checked="me.allowDownload">
+                <span class="absolute top-1 size-5 rounded-full transition-all" :class="me.allowDownload ? 'left-6 bg-on-accent' : 'left-1 bg-fg'"></span>
+              </button>
+            </div>
+            <p class="mt-1.5 text-[13px] leading-snug text-muted">Друзья смогут сохранить фотографию момента на устройство.</p>
+          </div>
+          <div class="rounded-3xl border border-white/10 bg-white/5 px-5 py-4">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-[16px] font-medium">Разрешить репост в историю</span>
+              <button @click="togglePrivacy('allowRestory', 'allow_restory')" class="relative h-7 w-12 shrink-0 rounded-full border border-white/10 transition-colors" :class="me.allowRestory ? 'bg-accent' : 'bg-white/10'" role="switch" :aria-checked="me.allowRestory">
+                <span class="absolute top-1 size-5 rounded-full transition-all" :class="me.allowRestory ? 'left-6 bg-on-accent' : 'left-1 bg-fg'"></span>
+              </button>
+            </div>
+            <p class="mt-1.5 text-[13px] leading-snug text-muted">Друзья смогут поделиться вашим моментом в своей истории.</p>
+          </div>
+          <div class="rounded-3xl border border-white/10 bg-white/5 px-5 py-4">
+            <div class="flex items-center justify-between gap-3">
+              <span class="text-[16px] font-medium">Виден не из списка друзей</span>
+              <button @click="togglePrivacy('allowPublic', 'allow_public')" class="relative h-7 w-12 shrink-0 rounded-full border border-white/10 transition-colors" :class="me.allowPublic ? 'bg-accent' : 'bg-white/10'" role="switch" :aria-checked="me.allowPublic">
+                <span class="absolute top-1 size-5 rounded-full transition-all" :class="me.allowPublic ? 'left-6 bg-on-accent' : 'left-1 bg-fg'"></span>
+              </button>
+            </div>
+            <p class="mt-1.5 text-[13px] leading-snug text-muted">По прямой ссылке момент смогут открыть те, кто не у вас в друзьях.</p>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="activityDialog" @close="closeActivity()" @cancel.prevent="closeActivity()" @click="$event.target === $el && closeActivity()" aria-label="Активность">
+      <div x-sheet="closeActivity()" x-trap.noscroll="activityOpen" class="sheet-panel glass safe-b safe-x no-scrollbar absolute inset-x-0 bottom-0 max-h-[72svh] overflow-y-auto rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px]">
+          <p class="mb-5 text-center text-[17px] font-bold">Активность</p>
+          <div x-show="activity.loading" class="flex justify-center py-12">
+            <span class="size-7 rounded-full border-2 border-white/15 border-t-fg motion-safe:animate-spin-slow"></span>
+          </div>
+          <div x-show="!activity.loading && !activity.list.length" class="flex flex-col items-center gap-3 py-12 text-center">
+            <iconify-icon aria-hidden="true" icon="lucide:eye-off" class="text-4xl text-muted"></iconify-icon>
+            <p class="text-[15px] text-muted">Пока никто не посмотрел</p>
+          </div>
+          <ul x-show="!activity.loading && activity.list.length" x-flip class="space-y-2">
+            <template x-for="u in activity.list" :key="u.id">
+              <li>
+                <button type="button" @click="openUserProfile(u)" class="flex w-full items-center gap-3 rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-left transition active:scale-[0.98]">
+                  <span class="relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-sm font-bold text-fg">
+                    <img x-avatar="u" />
+                    <span x-show="!u.photoUrl" x-text="initials(u)"></span>
+                  </span>
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-[15px] font-semibold" x-text="u.name"></span>
+                    <span class="block text-[12px] text-muted" x-text="u.reaction ? 'Отреагировал(а)' : 'Посмотрел(а) момент'"></span>
+                  </span>
+                  <span x-show="u.reaction" class="shrink-0 text-xl leading-none" x-text="u.reaction"></span>
+                  <iconify-icon aria-hidden="true" icon="lucide:eye" class="shrink-0 text-[1.1rem] text-muted"></iconify-icon>
+                </button>
+              </li>
+            </template>
+          </ul>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="draftsDialog" @close="closeDrafts()" @cancel.prevent="closeDrafts()" @click="$event.target === $el && closeDrafts()" aria-label="Черновики">
+      <div x-sheet="closeDrafts()" x-trap.noscroll="draftsOpen" class="sheet-panel glass safe-b safe-x no-scrollbar absolute inset-x-0 bottom-0 max-h-[86svh] overflow-y-auto rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px]">
+          <p class="mb-5 text-center text-[17px] font-bold">Черновики</p>
+          <template x-if="!drafts.length">
+            <div class="flex flex-col items-center gap-3 py-12 text-center">
+              <iconify-icon aria-hidden="true" icon="lucide:layers" class="text-4xl text-muted"></iconify-icon>
+              <p class="text-[15px] text-muted">Здесь будут снимки, сохранённые на потом.</p>
+            </div>
+          </template>
+          <ul class="grid grid-cols-3 gap-2.5">
+            <template x-for="d in drafts" :key="d.id">
+              <li class="relative aspect-square overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+                <button type="button" @click="openDraft(d)" class="block h-full w-full transition active:scale-[0.97]">
+                  <img :src="d._url" alt="" class="h-full w-full object-cover" />
+                  <span x-show="d.caption" class="absolute inset-x-1 bottom-1 truncate rounded-lg bg-black/55 px-2 py-0.5 text-[11px] font-medium text-fg" x-text="d.caption"></span>
+                </button>
+                <button @click="deleteDraft(d)" aria-label="Удалить черновик" class="absolute right-1 top-1 grid size-7 place-items-center rounded-full bg-black/55 text-fg transition active:scale-90">
+                  <iconify-icon aria-hidden="true" icon="lucide:x" class="text-[1rem]"></iconify-icon>
+                </button>
+              </li>
+            </template>
+          </ul>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="recipientsDialog" @close="closeRecipients()" @cancel.prevent="closeRecipients()" @click="$event.target === $el && closeRecipients()" aria-label="Получатели">
+      <div x-sheet="closeRecipients()" x-trap.noscroll="recipientsOpen" class="sheet-panel glass safe-b safe-x no-scrollbar absolute inset-x-0 bottom-0 max-h-[86svh] overflow-y-auto rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px]">
+          <p class="text-center text-[17px] font-bold">Кому отправить</p>
+          <p class="mx-auto mt-1 max-w-[18rem] text-center text-[13px] leading-snug text-muted">Не выбирайте никого — момент увидят все друзья.</p>
+          <ul x-flip class="mt-5 space-y-2">
+            <template x-for="f in friends" :key="f.id">
+              <li>
+                <button type="button" @click="toggleRecipient(f.id)" class="flex w-full items-center gap-3 rounded-3xl border bg-white/5 px-4 py-3 text-left transition active:scale-[0.98]" :class="isRecipient(f.id) ? 'border-accent' : 'border-white/10'">
+                  <span class="relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-full border border-white/10 bg-white/10 text-sm font-bold text-fg">
+                    <img x-avatar="f" />
+                    <span x-show="!f.photoUrl" x-text="initials(f)"></span>
+                  </span>
+                  <span class="min-w-0 flex-1 truncate text-[15px] font-semibold" x-text="f.name"></span>
+                  <span class="grid size-6 shrink-0 place-items-center rounded-full border transition" :class="isRecipient(f.id) ? 'border-accent bg-accent text-on-accent' : 'border-white/25 text-transparent'">
+                    <iconify-icon aria-hidden="true" icon="lucide:check" class="text-[0.95rem]"></iconify-icon>
+                  </span>
+                </button>
+              </li>
+            </template>
+          </ul>
+          <button @click="recipientsTarget ? saveRecipients() : closeRecipients()" class="mt-5 w-full rounded-full bg-accent py-4 text-[16px] font-bold text-on-accent transition active:scale-[0.98]">
+            <span x-show="recipientCount" x-text="(recipientsTarget ? 'Сохранить · ' : 'Готово · ') + recipientCount"></span>
+            <span x-show="!recipientCount" x-text="recipientsTarget ? 'Для всех друзей' : 'Готово'"></span>
+          </button>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="momentShareDialog" @close="closeMomentShare()" @cancel.prevent="closeMomentShare()" @click="$event.target === $el && closeMomentShare()" aria-label="Поделиться моментом">
+      <div x-sheet="closeMomentShare()" x-trap.noscroll="momentShareOpen" class="sheet-panel glass safe-b safe-x absolute inset-x-0 bottom-0 rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px]">
+          <p class="text-center text-[17px] font-bold">Поделиться моментом</p>
+          <p class="mx-auto mt-1 max-w-[17rem] text-center text-sm leading-relaxed text-muted">Покажите код или отправьте ссылку на этот момент.</p>
+          <div class="mx-auto mt-5 w-fit rounded-2xl bg-white p-3">
+            <img x-show="momentShare.qr" :src="momentShare.qr" alt="QR-код момента" class="block size-56 rounded-lg" />
+            <div x-show="!momentShare.qr" class="grid size-56 place-items-center">
+              <span class="size-7 rounded-full border-2 border-black/15 border-t-black/60 motion-safe:animate-spin-slow"></span>
+            </div>
+          </div>
+          <div class="mt-6 grid grid-cols-3 gap-2.5">
+            <button @click="copyMomentLink()" class="flex flex-col items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 py-3.5 text-[13px] font-semibold transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:copy" class="text-[1.35rem]"></iconify-icon>
+              Скопировать
+            </button>
+            <button @click="shareMomentLink()" class="flex flex-col items-center gap-1.5 rounded-2xl bg-accent py-3.5 text-[13px] font-semibold text-on-accent transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:send" class="text-[1.35rem]"></iconify-icon>
+              Поделиться
+            </button>
+            <button @click="downloadMomentQR()" class="flex flex-col items-center gap-1.5 rounded-2xl border border-white/10 bg-white/5 py-3.5 text-[13px] font-semibold transition active:scale-[0.97]">
+              <iconify-icon aria-hidden="true" icon="lucide:download" class="text-[1.35rem]"></iconify-icon>
+              Скачать
+            </button>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="reportDialog" @close="closeReport()" @cancel.prevent="closeReport()" @click="$event.target === $el && closeReport()" aria-label="Пожаловаться">
+      <div x-sheet="closeReport()" x-trap.noscroll="reportOpen" class="sheet-panel glass safe-b safe-x absolute inset-x-0 bottom-0 rounded-t-[2.25rem] border-t border-white/10 px-5 pb-6 pt-3">
+        <div class="mx-auto mb-5 h-1.5 w-11 rounded-full bg-white/25"></div>
+        <div class="mx-auto max-w-[440px]">
+          <p class="mb-1 text-center text-[17px] font-bold">Пожаловаться</p>
+          <p class="mb-4 text-center text-[13px] text-muted">Жалоба анонимно уйдёт модераторам Sythera</p>
+          <div class="space-y-2">
+            <template x-for="r in reportReasons" :key="r.id">
+              <button @click="submitReport(r.id)" class="flex w-full items-center gap-3 rounded-3xl border border-white/10 bg-white/5 px-5 py-4 text-left transition active:scale-[0.98]">
+                <iconify-icon aria-hidden="true" class="text-[1.3rem] text-fg/80" :icon="$icon(r.icon)"></iconify-icon>
+                <span class="text-[15px] font-semibold" x-text="r.label"></span>
+              </button>
+            </template>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog x-ref="onboardDialog" @cancel.prevent aria-label="Добро пожаловать" class="onboard">
+      <div class="fade-panel safe absolute inset-0 grid place-items-center bg-black/85 px-8 text-center">
+        <div class="max-w-xs motion-safe:animate-rise">
+          <p class="mb-7 text-[2.5rem] font-black tracking-[-0.04em] motion-safe:animate-float">Sythera</p>
+          <h1 class="text-2xl font-extrabold tracking-[-0.02em]">Делитесь моментами</h1>
+          <p class="mt-3 text-[15px] leading-relaxed text-muted">Снимайте моменты для близкого круга. Свайп вверх — моменты друзей, свайп вниз — снова камера.</p>
+          <button @click="finishOnboarding()" class="mt-9 w-full rounded-full bg-accent px-6 py-4 text-[16px] font-bold text-on-accent transition active:scale-[0.98]">Начать</button>
+        </div>
+      </div>
+    </dialog>
+
+    <div x-show="status === 'ready' && accountBlocked" x-cloak class="safe fixed inset-0 z-40 grid min-h-svh place-items-center bg-black px-8 text-center">
+      <div class="flex w-full max-w-sm flex-col items-center motion-safe:animate-rise">
+        <div class="mb-5 grid size-16 place-items-center rounded-[1.5rem] border border-white/10 bg-white/5">
+          <iconify-icon aria-hidden="true" class="text-[2rem] text-muted" :icon="$icon(accountBlocked?.restricted ? 'lucide:clock' : 'lucide:lock')"></iconify-icon>
+        </div>
+        <h1 class="text-2xl font-bold tracking-tight" x-text="accountBlocked?.title"></h1>
+        <template x-if="accountBlocked?.restricted">
+          <div class="mt-6 flex flex-col items-center gap-2">
+            <p class="text-[13px] uppercase tracking-wide text-muted">До снятия</p>
+            <p class="text-3xl font-black tabular-nums" x-text="blockCountdown"></p>
+            <p x-show="accountBlocked?.reason" class="mt-4 max-w-[18rem] text-[15px] leading-relaxed text-muted" x-text="'Причина: ' + accountBlocked.reason"></p>
+          </div>
+        </template>
+        <template x-if="!accountBlocked?.restricted">
+          <p class="mt-3 text-[15px] leading-relaxed text-muted" x-text="accountBlocked?.message"></p>
+        </template>
+      </div>
+    </div>
+
+    <div id="toasts" popover="manual" x-data="toasts" x-flip class="safe-b pointer-events-none fixed inset-x-0 bottom-0 z-50 flex flex-col items-center gap-2 px-4 pb-5">
+      <template x-for="t in items" :key="t.id">
+        <div @click="remove(t.id)" role="status" aria-live="polite" class="glass pointer-events-auto flex w-fit max-w-[88vw] items-center gap-3 break-words rounded-2xl border border-white/10 px-5 py-3 text-center text-sm font-medium shadow-2xl shadow-black/40">
+          <span x-text="t.text"></span>
+        </div>
+      </template>
+    </div>
+  </body>
+</html>
