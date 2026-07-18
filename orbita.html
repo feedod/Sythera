@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>ORBITA</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<script type="importmap">
+{
+  "imports": {
+    "alpinejs": "https://esm.sh/alpinejs@3.14.9",
+    "globe.gl": "https://esm.sh/globe.gl@2.34.4",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.49.4",
+    "@telegram-apps/sdk": "https://esm.sh/@telegram-apps/sdk@3.5.3"
+  }
+}
+</script>
+<style type="text/tailwindcss">
+@theme {
+  --color-bg: #060a12;
+  --color-raise: #0b1220;
+  --color-card: #0e1626;
+  --color-line: #1a2438;
+  --color-amber: #f0a832;
+  --color-amber-dim: #8a6420;
+  --color-data: #8fa8c8;
+  --color-ink: #dce6f2;
+  --color-mute: #5a6b84;
+  --color-alert: #e05252;
+  --color-verify: #46b878;
+  --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+  --animate-breathe: breathe 2.4s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.4s linear infinite;
+}
+@keyframes breathe {
+  0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 1; }
+  50% { transform: translate3d(0,0,0) scale(.7); opacity: .6; }
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+@utility sheet-glass {
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+html, body { overscroll-behavior: none; }
+body { -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased; }
+[x-cloak] { display: none !important; }
+.sheet-panel { transform: translate3d(0, 105%, 0); transition: transform .28s cubic-bezier(.32,.72,.28,1); will-change: transform; }
+.sheet-panel.show { transform: translate3d(0, 0, 0); }
+.skeleton-bg { background: linear-gradient(90deg, var(--color-card) 25%, #131d31 50%, var(--color-card) 75%); background-size: 200% 100%; }
+.card-press { transition: transform .12s ease, border-color .15s ease; }
+.card-press:active { transform: scale(.99); border-color: var(--color-amber-dim); }
+.toast-panel { transition: transform .3s cubic-bezier(.32,.72,.28,1), opacity .3s; will-change: transform; }
+:focus-visible { outline: 2px solid var(--color-amber); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .sheet-panel, .card-press, .toast-panel, [class*="transition"] { transition: none !important; }
+  .animate-breathe, .animate-shimmer { animation: none !important; }
+}
+</style>
+</head>
+<body class="h-dvh bg-bg text-ink text-[15px] leading-relaxed font-sans select-none">
+<div class="flex flex-col h-dvh" x-data="app" x-cloak>
+
+  <header class="relative z-[5] flex items-center justify-between gap-3 px-4 pb-2 pt-[calc(env(safe-area-inset-top,0px)+10px)] bg-linear-to-b from-bg/95 via-bg/70 to-transparent">
+    <div class="flex items-baseline gap-2">
+      <span class="font-mono font-bold text-[15px] tracking-[.22em] text-amber">ORBITA</span>
+      <span class="text-[10px] tracking-[.14em] uppercase text-mute">центр событий</span>
+    </div>
+    <div class="flex items-center gap-[7px] text-[11px] text-mute">
+      <span class="font-mono tabular-nums" x-text="syncLabel"></span>
+      <div class="size-[7px] rounded-full will-change-transform"
+           :class="syncStale
+             ? 'bg-alert shadow-[0_0_8px_rgba(224,82,82,.8)]'
+             : 'bg-verify shadow-[0_0_8px_rgba(70,184,120,.8)] animate-breathe'"></div>
+    </div>
+  </header>
+
+  <section class="relative flex-none h-[42dvh] min-h-[240px] overflow-hidden">
+    <div class="absolute inset-0" x-ref="globeMount"></div>
+    <div class="absolute inset-0 flex items-center justify-center text-mute text-xs tracking-[.18em] uppercase" x-show="!globeReady">инициализация</div>
+    <div class="absolute top-2 left-4 flex flex-col gap-[3px] text-[10px] text-data uppercase tracking-[.1em] pointer-events-none" x-show="globeReady">
+      <div class="flex items-center gap-[6px]"><span>событий</span><span class="text-amber font-mono tabular-nums" x-text="visible.length"></span></div>
+      <div class="flex items-center gap-[6px]"><span>проверено</span><span class="text-verify font-mono tabular-nums" x-text="verifiedCount"></span></div>
+    </div>
+    <div class="absolute inset-x-0 bottom-0 h-14 bg-linear-to-b from-transparent to-bg pointer-events-none"></div>
+  </section>
+
+  <nav class="flex flex-none gap-2 overflow-x-auto no-scrollbar px-4 pt-[10px] pb-1">
+    <template x-for="f in filterList" :key="f.key">
+      <button class="flex flex-none items-center gap-[6px] px-[13px] py-[6px] rounded-full border text-[12.5px] font-medium transition-colors"
+              :class="activeFilter === f.key ? 'bg-amber/12 border-amber-dim text-amber' : 'bg-raise border-line text-data'"
+              @click="setFilter(f.key)">
+        <span x-text="f.label"></span>
+        <span class="text-[10.5px] font-mono tabular-nums" :class="activeFilter === f.key ? 'text-amber-dim' : 'text-mute'" x-text="countFor(f.key)"></span>
+      </button>
+    </template>
+  </nav>
+
+  <main class="flex-1 overflow-y-auto px-4 pt-[10px] pb-[calc(env(safe-area-inset-bottom,0px)+24px)] [-webkit-overflow-scrolling:touch]" x-ref="feed">
+    <template x-if="loading">
+      <div>
+        <template x-for="i in 4" :key="i">
+          <div class="h-[104px] rounded-2xl skeleton-bg animate-shimmer mb-[10px]"></div>
+        </template>
+      </div>
+    </template>
+
+    <template x-if="!loading && error">
+      <div class="flex flex-col items-center gap-[10px] px-6 py-12 text-center text-mute text-[13.5px]">
+        <span>Не удалось загрузить события. Проверьте связь и повторите.</span>
+        <button class="px-[22px] py-[9px] rounded-[10px] border border-amber-dim bg-amber/10 text-amber text-[13.5px] font-semibold" @click="load()">Повторить</button>
+      </div>
+    </template>
+
+    <template x-if="!loading && !error && visible.length === 0">
+      <div class="flex flex-col items-center px-6 py-12 text-center text-mute text-[13.5px]">
+        <span>По этому фильтру событий пока нет. Картина обновляется каждые 15 минут.</span>
+      </div>
+    </template>
+
+    <template x-for="s in visible" :key="s.id">
+      <article class="card-press bg-card border border-line rounded-2xl px-[14px] py-3 mb-[10px]"
+               :class="s.priority === 'high' && 'border-l-2 border-l-alert'"
+               @click="openStory(s)">
+        <div class="flex items-center gap-2 mb-[8px]">
+          <div class="relative" x-data="{ tip: false }" @click.stop>
+            <button class="flex items-center gap-[5px] px-[8px] py-[3px] rounded-full border text-[10px] font-bold uppercase tracking-[.06em]"
+                    :class="tierChip(s.tier)"
+                    @click="tip = !tip">
+              <span class="size-[5px] rounded-full" :class="tierDot(s.tier)"></span>
+              <span x-text="tierLabel(s.tier)"></span>
+            </button>
+            <div x-show="tip" @click.outside="tip = false" x-transition.opacity.duration.150ms
+                 class="absolute left-0 top-[26px] z-10 w-[210px] p-[10px] rounded-[10px] bg-raise border border-line shadow-xl text-[11.5px] leading-snug text-data font-normal normal-case tracking-normal" x-cloak>
+              <span x-text="credHint(s)"></span>
+            </div>
+          </div>
+          <div class="flex items-center gap-[5px] ml-auto text-[11px] text-mute">
+            <span class="font-mono tabular-nums" x-text="s.source_count"></span>
+            <span x-text="s.source_count === 1 ? 'источник' : 'источн.'"></span>
+          </div>
+          <time class="text-[11px] text-mute font-mono tabular-nums" x-text="ago(s.last_seen)"></time>
+        </div>
+
+        <h2 class="text-[14.5px] font-semibold leading-[1.38]" x-text="s.title"></h2>
+
+        <div class="flex items-center gap-[10px] mt-[9px]">
+          <div class="flex gap-[3px]">
+            <template x-for="i in 5" :key="i">
+              <span class="h-[3px] w-[15px] rounded-full" :class="i <= Math.round(s.credibility / 20) ? tierBar(s.tier) : 'bg-line'"></span>
+            </template>
+          </div>
+          <span class="font-mono tabular-nums text-[10.5px]" :class="tierText(s.tier)" x-text="s.credibility + '/100'"></span>
+          <div class="inline-flex items-center gap-[5px] ml-auto text-[11.5px]" :class="s.lat != null ? 'text-data' : 'text-mute'">
+            <span class="size-[5px] rounded-full flex-none" :class="s.lat != null ? 'bg-amber' : 'bg-mute'"></span>
+            <span x-text="s.place || 'без геопривязки'"></span>
+          </div>
+        </div>
+      </article>
+    </template>
+  </main>
+
+  <div class="fixed inset-x-0 top-[calc(env(safe-area-inset-top,0px)+8px)] z-50 flex justify-center px-4 pointer-events-none">
+    <button class="toast-panel pointer-events-auto flex items-center gap-[8px] px-[14px] py-[9px] rounded-full bg-raise border border-amber-dim shadow-xl text-[12.5px] text-amber font-semibold"
+            x-show="toast.show"
+            :class="toast.show ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-3'"
+            @click="applyToast()" x-cloak>
+      <span class="size-[6px] rounded-full bg-amber will-change-transform animate-breathe"></span>
+      <span x-text="toast.text"></span>
+    </button>
+  </div>
+
+  <div class="fixed inset-0 z-40 bg-[rgba(3,6,11,.6)] sheet-glass transition-opacity duration-200"
+       x-show="detail" :class="sheetIn ? 'opacity-100' : 'opacity-0'" @click="close()" x-cloak></div>
+  <div class="sheet-panel fixed inset-x-0 bottom-0 z-[41] max-h-[80dvh] flex flex-col bg-raise border border-b-0 border-line rounded-t-[20px] px-[18px] pt-[10px] pb-[calc(env(safe-area-inset-bottom,0px)+20px)]"
+       x-show="detail" :class="sheetIn && 'show'" x-cloak>
+    <div class="flex-none w-[38px] h-1 rounded-sm bg-line mx-auto mb-[14px]"></div>
+    <div class="overflow-y-auto [-webkit-overflow-scrolling:touch]" x-show="detail">
+      <div class="flex items-center gap-2 mb-[10px]">
+        <span class="flex items-center gap-[5px] px-[8px] py-[3px] rounded-full border text-[10px] font-bold uppercase tracking-[.06em]" :class="detail && tierChip(detail.tier)">
+          <span class="size-[5px] rounded-full" :class="detail && tierDot(detail.tier)"></span>
+          <span x-text="detail && tierLabel(detail.tier)"></span>
+        </span>
+        <div class="flex gap-[3px] items-center">
+          <template x-for="i in 5" :key="i">
+            <span class="h-[3px] w-[16px] rounded-full" :class="detail && i <= Math.round(detail.credibility / 20) ? tierBar(detail.tier) : 'bg-line'"></span>
+          </template>
+        </div>
+        <span class="font-mono tabular-nums text-[11px] ml-auto" :class="detail && tierText(detail.tier)" x-text="detail ? detail.credibility + '/100' : ''"></span>
+      </div>
+
+      <h2 class="text-[17px] font-bold leading-[1.35] mb-[8px]" x-text="detail?.title"></h2>
+      <p class="text-[12.5px] text-mute mb-[16px]" x-text="detail ? credHint(detail) : ''"></p>
+
+      <div class="flex items-center justify-between mb-[10px]">
+        <span class="text-[11px] uppercase tracking-[.12em] text-mute">освещение</span>
+        <span class="text-[11px] text-mute font-mono tabular-nums" x-text="detail ? detail.source_type_count + ' тип. · ' + detail.source_count + ' ист.' : ''"></span>
+      </div>
+
+      <template x-if="membersLoading">
+        <div>
+          <div class="h-[52px] rounded-xl skeleton-bg animate-shimmer mb-2"></div>
+          <div class="h-[52px] rounded-xl skeleton-bg animate-shimmer"></div>
+        </div>
+      </template>
+
+      <div x-show="!membersLoading" class="flex flex-col gap-2">
+        <template x-for="m in members" :key="m.id">
+          <a class="card-press flex items-center gap-[10px] p-[10px] rounded-xl bg-card border border-line no-underline"
+             @click.prevent="openUrl(m.url)">
+            <span class="flex-none text-[10px] font-bold tracking-[.06em] uppercase px-[7px] py-[3px] rounded-[5px] bg-raise border" :class="badgeClass(m)" x-text="m.source_name"></span>
+            <span class="flex-1 text-[12.5px] text-ink leading-snug line-clamp-2" x-text="m.title"></span>
+            <time class="flex-none text-[10.5px] text-mute font-mono tabular-nums" x-text="ago(m.published_at)"></time>
+          </a>
+        </template>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import Alpine from 'alpinejs'
+import Globe from 'globe.gl'
+import { createClient } from '@supabase/supabase-js'
+import {
+  init,
+  miniApp,
+  viewport,
+  swipeBehavior,
+  hapticFeedback,
+  openLink,
+  openTelegramLink
+} from '@telegram-apps/sdk'
+
+let inTelegram = false
+try {
+  init()
+  inTelegram = true
+  if (miniApp.mount.isAvailable()) miniApp.mount()
+  if (viewport.mount.isAvailable()) {
+    await viewport.mount()
+    if (viewport.expand.isAvailable()) viewport.expand()
+  }
+  if (swipeBehavior.mount.isAvailable()) {
+    swipeBehavior.mount()
+    if (swipeBehavior.disableVertical.isAvailable()) swipeBehavior.disableVertical()
+  }
+  if (miniApp.setHeaderColor.isAvailable()) miniApp.setHeaderColor('#060a12')
+  if (miniApp.setBackgroundColor.isAvailable()) miniApp.setBackgroundColor('#060a12')
+} catch {}
+
+const haptic = {
+  impact(style) {
+    if (inTelegram && hapticFeedback.impactOccurred.isAvailable()) hapticFeedback.impactOccurred(style)
+  },
+  select() {
+    if (inTelegram && hapticFeedback.selectionChanged.isAvailable()) hapticFeedback.selectionChanged()
+  }
+}
+
+document.addEventListener('touchstart', () => {}, { passive: true })
+
+const CONFIG = {
+  SUPABASE_URL: '',
+  SUPABASE_ANON_KEY: '',
+  REFRESH_MS: 90000,
+  STALE_MS: 30 * 60 * 1000,
+  FEED_LIMIT: 120
+}
+
+const supabase = CONFIG.SUPABASE_URL
+  ? createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY)
+  : null
+
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))
+  ])
+}
+
+const TIER = {
+  verified: { label: 'проверено', chip: 'bg-verify/12 border-verify/40 text-verify', dot: 'bg-verify', bar: 'bg-verify', text: 'text-verify' },
+  developing: { label: 'развивается', chip: 'bg-amber/12 border-amber-dim text-amber', dot: 'bg-amber', bar: 'bg-amber', text: 'text-amber' },
+  single: { label: 'один источник', chip: 'bg-raise border-line text-mute', dot: 'bg-mute', bar: 'bg-mute', text: 'text-mute' }
+}
+
+const DEMO_STORIES = [
+  { id: 's1', title: 'Землетрясение M5.8 у побережья Хоккайдо, предупреждений о цунами нет', place: 'Хоккайдо, Япония', lat: 43.06, lon: 141.35, priority: 'high', credibility: 92, tier: 'verified', source_count: 4, source_type_count: 3, last_seen: Date.now() - 9 * 60000,
+    members: [
+      { id: 'm1', source_type: 'usgs', source_name: 'USGS', title: 'M5.8 — 34km off Hokkaido coast, depth 34km', url: 'https://earthquake.usgs.gov', published_at: Date.now() - 9 * 60000 },
+      { id: 'm2', source_type: 'tg_channel', source_name: 'Мониторинг', title: 'Толчки ощущались в прибрежных районах, разрушений нет', url: 'https://t.me/s/example', published_at: Date.now() - 7 * 60000 },
+      { id: 'm3', source_type: 'gdelt', source_name: 'GDELT', title: 'Japan earthquake coverage spike detected', url: '', published_at: Date.now() - 6 * 60000 },
+      { id: 'm4', source_type: 'rss', source_name: 'Reuters', title: 'No tsunami warning issued after offshore quake', url: 'https://reuters.com', published_at: Date.now() - 4 * 60000 }
+    ] },
+  { id: 's2', title: 'Массовые протесты в столичном регионе, перекрыты три магистрали', place: 'Найроби, Кения', lat: -1.29, lon: 36.82, priority: 'high', credibility: 63, tier: 'developing', source_count: 2, source_type_count: 2, last_seen: Date.now() - 22 * 60000,
+    members: [
+      { id: 'm5', source_type: 'gdelt', source_name: 'GDELT', title: 'Protest event cluster, negative tone rising', url: '', published_at: Date.now() - 22 * 60000 },
+      { id: 'm6', source_type: 'tg_channel', source_name: 'Регион', title: 'Перекрыты подъезды к центру, движение парализовано', url: 'https://t.me/s/example', published_at: Date.now() - 18 * 60000 }
+    ] },
+  { id: 's3', title: 'Землетрясение M4.6 в 40 км от Душанбе, ощущалось в жилых районах', place: 'Таджикистан', lat: 38.56, lon: 68.79, priority: 'normal', credibility: 40, tier: 'developing', source_count: 2, source_type_count: 1, last_seen: Date.now() - 48 * 60000,
+    members: [
+      { id: 'm7', source_type: 'usgs', source_name: 'USGS', title: 'M4.6 — 40km SW of Dushanbe, depth 18km', url: 'https://earthquake.usgs.gov', published_at: Date.now() - 48 * 60000 },
+      { id: 'm8', source_type: 'usgs', source_name: 'EMSC', title: 'Felt report cluster near Dushanbe', url: '', published_at: Date.now() - 46 * 60000 }
+    ] },
+  { id: 's4', title: 'Закрыт воздушный коридор над северной частью Красного моря', place: 'Красное море', lat: 22.0, lon: 38.0, priority: 'normal', credibility: 18, tier: 'single', source_count: 1, source_type_count: 1, last_seen: Date.now() - 75 * 60000,
+    members: [
+      { id: 'm9', source_type: 'tg_channel', source_name: 'Авиация', title: 'NOTAM до 18:00 UTC, перевозчики меняют маршруты', url: 'https://t.me/s/example', published_at: Date.now() - 75 * 60000 }
+    ] },
+  { id: 's5', title: 'Кластер тепловых аномалий в промышленной зоне Роттердама', place: 'Роттердам, Нидерланды', lat: 51.92, lon: 4.48, priority: 'normal', credibility: 18, tier: 'single', source_count: 1, source_type_count: 1, last_seen: Date.now() - 2.2 * 3600000,
+    members: [
+      { id: 'm10', source_type: 'firms', source_name: 'FIRMS', title: 'VIIRS thermal anomaly, sustained 6h', url: '', published_at: Date.now() - 2.2 * 3600000 }
+    ] },
+  { id: 's6', title: 'Центробанк объявил внеплановое заседание по ставке', place: '', lat: null, lon: null, priority: 'normal', credibility: 26, tier: 'single', source_count: 1, source_type_count: 1, last_seen: Date.now() - 3.1 * 3600000,
+    members: [
+      { id: 'm11', source_type: 'rss', source_name: 'Reuters', title: 'Central bank calls unscheduled rate meeting', url: 'https://reuters.com', published_at: Date.now() - 3.1 * 3600000 }
+    ] }
+]
+
+Alpine.data('app', () => ({
+  stories: [],
+  members: [],
+  loading: true,
+  membersLoading: false,
+  error: false,
+  activeFilter: 'all',
+  detail: null,
+  sheetIn: false,
+  globeReady: false,
+  lastSync: null,
+  now: Date.now(),
+  toast: { show: false, text: '' },
+  _globe: null,
+  _ro: null,
+  _timer: null,
+  _clock: null,
+  _closeTimer: null,
+  _toastTimer: null,
+  _seq: 0,
+  _seen: new Set(),
+
+  filterList: [
+    { key: 'all', label: 'Все' },
+    { key: 'verified', label: 'Проверено' },
+    { key: 'developing', label: 'Развивается' },
+    { key: 'hot', label: 'Срочное' },
+    { key: 'geo', label: 'На карте' }
+  ],
+
+  init() {
+    this._clock = setInterval(() => { this.now = Date.now() }, 30000)
+    this.load()
+    this._timer = setInterval(() => this.load(true), CONFIG.REFRESH_MS)
+    this.$nextTick(() => this.mountGlobe())
+    this.$watch('visible', () => this.paintGlobe())
+  },
+
+  destroy() {
+    clearInterval(this._timer)
+    clearInterval(this._clock)
+    clearTimeout(this._closeTimer)
+    clearTimeout(this._toastTimer)
+    this._ro?.disconnect()
+    this._globe?._destructor?.()
+  },
+
+  get visible() {
+    if (this.activeFilter === 'all') return this.stories
+    if (this.activeFilter === 'hot') return this.stories.filter(s => s.priority === 'high')
+    if (this.activeFilter === 'geo') return this.stories.filter(s => s.lat != null)
+    return this.stories.filter(s => s.tier === this.activeFilter)
+  },
+
+  get verifiedCount() {
+    return this.visible.filter(s => s.tier === 'verified').length
+  },
+
+  get syncStale() {
+    return !this.lastSync || (this.now - this.lastSync) > CONFIG.STALE_MS
+  },
+
+  get syncLabel() {
+    if (!this.lastSync) return '—'
+    const m = Math.floor((this.now - this.lastSync) / 60000)
+    return m < 1 ? 'сейчас' : `${m} мин`
+  },
+
+  countFor(key) {
+    if (key === 'all') return this.stories.length
+    if (key === 'hot') return this.stories.filter(s => s.priority === 'high').length
+    if (key === 'geo') return this.stories.filter(s => s.lat != null).length
+    return this.stories.filter(s => s.tier === key).length
+  },
+
+  async load(silent = false) {
+    const seq = ++this._seq
+    if (!silent) { this.loading = true; this.error = false }
+    try {
+      let rows
+      if (supabase) {
+        const { data, error } = await withTimeout(
+          supabase.from('stories')
+            .select('id, title, place, lat, lon, priority, credibility, tier, source_count, source_type_count, last_seen')
+            .order('last_seen', { ascending: false })
+            .limit(CONFIG.FEED_LIMIT),
+          12000
+        )
+        if (error) throw error
+        rows = data.map(r => ({ ...r, last_seen: new Date(r.last_seen).getTime() }))
+      } else {
+        await new Promise(r => setTimeout(r, 500))
+        rows = DEMO_STORIES
+      }
+      if (seq !== this._seq) return
+
+      if (silent && this._seen.size) {
+        const fresh = rows.filter(r => !this._seen.has(r.id)).length
+        if (fresh > 0) this.showToast(`${fresh} ${this.plural(fresh, 'новое событие', 'новых события', 'новых событий')}`)
+      }
+      this.stories = rows
+      this._seen = new Set(rows.map(r => r.id))
+      this.lastSync = Date.now()
+      this.error = false
+    } catch {
+      if (seq !== this._seq) return
+      if (!silent) this.error = true
+    } finally {
+      if (seq === this._seq) this.loading = false
+    }
+  },
+
+  async loadMembers(story) {
+    this.membersLoading = true
+    this.members = []
+    try {
+      if (supabase) {
+        const { data, error } = await withTimeout(
+          supabase.from('posts')
+            .select('id, source_type, source_name, title, url, published_at')
+            .eq('story_id', story.id)
+            .order('published_at', { ascending: false }),
+          10000
+        )
+        if (error) throw error
+        this.members = data.map(m => ({ ...m, published_at: new Date(m.published_at).getTime() }))
+      } else {
+        await new Promise(r => setTimeout(r, 350))
+        this.members = story.members ?? []
+      }
+    } catch {
+      this.members = story.members ?? []
+    } finally {
+      this.membersLoading = false
+    }
+  },
+
+  mountGlobe() {
+    const el = this.$refs.globeMount
+    const globe = Globe()(el)
+      .width(el.clientWidth)
+      .height(el.clientHeight)
+      .backgroundColor('rgba(0,0,0,0)')
+      .globeImageUrl('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-night.jpg')
+      .atmosphereColor('#2a4a7a')
+      .atmosphereAltitude(0.18)
+      .pointAltitude(0.015)
+      .pointRadius(d => 0.4 + (d.credibility / 100) * 0.55)
+      .pointColor(d => d.tier === 'verified' ? '#46b878' : d.tier === 'developing' ? '#f0a832' : '#5a6b84')
+      .ringColor(() => t => `rgba(224,82,82,${1 - t})`)
+      .ringMaxRadius(4)
+      .ringPropagationSpeed(1.4)
+      .ringRepeatPeriod(1800)
+      .onPointClick(d => {
+        const s = this.stories.find(x => x.id === d.id)
+        if (s) this.openStory(s)
+      })
+    const controls = globe.controls()
+    controls.autoRotate = true
+    controls.autoRotateSpeed = 0.45
+    controls.enableZoom = true
+    controls.enablePan = false
+    controls.minDistance = 180
+    controls.maxDistance = 420
+    globe.pointOfView({ lat: 25, lng: 55, altitude: 2.1 }, 0)
+    this._globe = globe
+    this.globeReady = true
+    this.paintGlobe()
+    this._ro = new ResizeObserver(() => {
+      globe.width(el.clientWidth).height(el.clientHeight)
+    })
+    this._ro.observe(el)
+  },
+
+  paintGlobe() {
+    if (!this._globe) return
+    const pts = this.visible
+      .filter(s => s.lat != null)
+      .map(s => ({ id: s.id, lat: s.lat, lng: s.lon, tier: s.tier, credibility: s.credibility, priority: s.priority }))
+    this._globe.pointsData(pts)
+    this._globe.ringsData(pts.filter(s => s.priority === 'high'))
+  },
+
+  flyTo(s) {
+    if (!this._globe || s.lat == null) return
+    this._globe.controls().autoRotate = false
+    this._globe.pointOfView({ lat: s.lat, lng: s.lon, altitude: 1.4 }, 800)
+  },
+
+  setFilter(key) {
+    this.activeFilter = key
+    haptic.select()
+    this.$refs.feed.scrollTo({ top: 0, behavior: 'smooth' })
+  },
+
+  openStory(s) {
+    clearTimeout(this._closeTimer)
+    this.detail = s
+    this.loadMembers(s)
+    this.flyTo(s)
+    haptic.impact('light')
+    requestAnimationFrame(() => requestAnimationFrame(() => { this.sheetIn = true }))
+  },
+
+  close() {
+    this.sheetIn = false
+    clearTimeout(this._closeTimer)
+    this._closeTimer = setTimeout(() => {
+      this.detail = null
+      this.members = []
+      if (this._globe) this._globe.controls().autoRotate = true
+    }, 300)
+  },
+
+  showToast(text) {
+    this.toast = { show: true, text }
+    clearTimeout(this._toastTimer)
+    this._toastTimer = setTimeout(() => { this.toast.show = false }, 4500)
+  },
+
+  applyToast() {
+    this.toast.show = false
+    haptic.select()
+    this.$refs.feed.scrollTo({ top: 0, behavior: 'smooth' })
+  },
+
+  openUrl(url) {
+    if (!url) return
+    if (!inTelegram) { window.open(url, '_blank'); return }
+    if (url.startsWith('https://t.me/') && openTelegramLink.isAvailable()) openTelegramLink(url)
+    else if (openLink.isAvailable()) openLink(url)
+    else window.open(url, '_blank')
+  },
+
+  tierChip(t) { return TIER[t]?.chip ?? TIER.single.chip },
+  tierDot(t) { return TIER[t]?.dot ?? TIER.single.dot },
+  tierBar(t) { return TIER[t]?.bar ?? TIER.single.bar },
+  tierText(t) { return TIER[t]?.text ?? TIER.single.text },
+  tierLabel(t) { return TIER[t]?.label ?? TIER.single.label },
+
+  credHint(s) {
+    const geo = s.lat != null ? ', есть геоподтверждение' : ''
+    const types = s.source_type_count > 1 ? `${s.source_type_count} типа источников` : 'один тип источника'
+    return `Достоверность ${s.credibility}/100. ${s.source_count} ${this.plural(s.source_count, 'независимый источник', 'независимых источника', 'независимых источников')}, ${types}${geo}.`
+  },
+
+  badgeClass(m) {
+    if (m.source_type === 'tg_channel') return 'text-[#55a8e0] border-[rgba(85,168,224,.35)]'
+    if (m.source_type === 'gdelt') return 'text-amber border-[rgba(240,168,50,.3)]'
+    if (m.source_type === 'usgs' || m.source_type === 'firms') return 'text-[#c88fe0] border-[rgba(200,143,224,.35)]'
+    return 'text-data border-line'
+  },
+
+  ago(ts) {
+    const d = this.now - ts
+    if (d < 60000) return 'сейчас'
+    if (d < 3600000) return `${Math.floor(d / 60000)} мин`
+    if (d < 86400000) return `${Math.floor(d / 3600000)} ч`
+    return `${Math.floor(d / 86400000)} д`
+  },
+
+  plural(n, one, few, many) {
+    const m10 = n % 10, m100 = n % 100
+    if (m10 === 1 && m100 !== 11) return one
+    if (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20)) return few
+    return many
+  }
+}))
+
+Alpine.start()
+</script>
+</body>
+</html>
