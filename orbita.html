@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"
     />
-    <meta name="color-scheme" content="dark" />
+    <meta name="color-scheme" content="light" />
     <meta name="format-detection" content="telephone=no" />
 
     <link rel="preconnect" href="https://esm.sh" crossorigin />
@@ -1060,8 +1060,8 @@
         async boot() {
           safe(() => initTelegram());
           safe(() => { if (miniApp.mount.isAvailable()) miniApp.mount(); });
-          safe(() => { if (miniApp.setHeaderColor.isAvailable()) miniApp.setHeaderColor("#000000"); });
-          safe(() => { if (miniApp.setBackgroundColor.isAvailable()) miniApp.setBackgroundColor("#000000"); });
+          safe(() => { if (miniApp.setHeaderColor.isAvailable()) miniApp.setHeaderColor("#ffffff"); });
+          safe(() => { if (miniApp.setBackgroundColor.isAvailable()) miniApp.setBackgroundColor("#ffffff"); });
           if (safe(() => viewport.mount.isAvailable())) await safe(() => viewport.mount());
           safe(() => { if (viewport.expand.isAvailable()) viewport.expand(); });
           if (safe(() => viewport.requestFullscreen.isAvailable())) await safe(() => viewport.requestFullscreen());
