@@ -1,0 +1,1682 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"
+    />
+    <meta name="color-scheme" content="dark" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="preconnect" href="https://esm.sh" crossorigin />
+    <link rel="preconnect" href="https://xpyjmvzewqikxhkdoqog.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://unpkg.com" crossorigin />
+    <link rel="preconnect" href="https://api.iconify.design" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+      @layer theme, base, components, utilities;
+
+      @theme {
+        --font-sans: "Inter", -apple-system, system-ui, sans-serif;
+        --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+        --color-bg: #080b11;
+        --color-fg: #e9eef6;
+        --color-muted: #8b97a8;
+        --color-faint: #5b6675;
+        --color-danger: #ff4d4f;
+        --color-verify: #2ee6a6;
+        --color-develop: #f5a623;
+        --color-single: #7a8595;
+        --color-cyan: #4da6ff;
+        --color-hairline: rgb(122 160 210 / 0.14);
+        --color-hairline-strong: rgb(122 160 210 / 0.26);
+        --color-fill: rgb(122 160 210 / 0.06);
+        --color-fill-2: rgb(122 160 210 / 0.12);
+        --color-accent: #4da6ff;
+        --color-on-accent: #04121f;
+        --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+        --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      @layer base {
+        *,
+        *::before,
+        *::after {
+          box-sizing: border-box;
+        }
+        html,
+        body {
+          height: 100%;
+          margin: 0;
+          background: #080b11;
+          overscroll-behavior: none;
+        }
+        :root {
+          color-scheme: dark;
+          --safe-top: env(safe-area-inset-top, 0px);
+          --safe-bottom: env(safe-area-inset-bottom, 0px);
+          --safe-left: env(safe-area-inset-left, 0px);
+          --safe-right: env(safe-area-inset-right, 0px);
+          --sa-top: env(safe-area-inset-top, 0px);
+          --sa-right: env(safe-area-inset-right, 0px);
+        }
+        body {
+          height: 100svh;
+          overflow: hidden;
+          color: var(--color-fg);
+          font-family: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+          font-optical-sizing: auto;
+          letter-spacing: -0.006em;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          text-rendering: optimizeLegibility;
+          -webkit-tap-highlight-color: transparent;
+          -webkit-user-select: none;
+          user-select: none;
+          touch-action: manipulation;
+          overscroll-behavior: none;
+        }
+        h1, h2, h3, p, ul { margin: 0; }
+        ul { padding: 0; list-style: none; }
+        button {
+          font: inherit;
+          letter-spacing: inherit;
+          color: inherit;
+          background: none;
+          border: 0;
+          padding: 0;
+          cursor: pointer;
+          text-align: inherit;
+          touch-action: manipulation;
+        }
+        svg, iconify-icon { display: block; }
+        [x-cloak] { display: none !important; }
+        ::selection { background: rgb(245 245 247 / 0.22); }
+        :where(button, a, [role="button"], [tabindex]):focus { outline: none; }
+        :where(button, a, [role="button"]) {
+          transition: transform 0.2s var(--ease-spring);
+        }
+        :where(button, a, [role="button"]):active { transform: scale(0.96); }
+      }
+
+      @layer components {
+        .ic { @apply block size-[1em] flex-none text-[1.25rem]; }
+        .spinner { @apply size-7 rounded-full border-2 border-white/15 border-t-fg; }
+        .disc { @apply mx-auto mb-4 grid size-14 place-items-center rounded-lg border border-hairline bg-fill; }
+        .disc .ic { @apply text-[1.75rem] text-muted; }
+
+        .chip { @apply inline-flex flex-none items-center gap-1.5 rounded-md border border-hairline bg-fill px-[0.8rem] py-[0.4rem] text-[0.8125rem] font-bold tracking-[-0.01em] text-muted transition-colors duration-200; }
+        .chip[data-on="true"] { @apply border-hairline-strong bg-fill-2 text-fg; }
+        .chip-n { @apply text-[0.6875rem] tabular-nums opacity-75; }
+
+        .search { @apply flex h-10 items-center gap-2 rounded-lg border border-hairline bg-fill px-3 transition-colors duration-200; }
+        .search:focus-within { @apply border-hairline-strong bg-fill-2; }
+        .search input { @apply min-w-0 flex-1 border-0 bg-transparent text-[0.9375rem] font-semibold tracking-[-0.01em] text-fg outline-none; }
+        .search input::placeholder { @apply font-semibold text-faint; }
+        .search input::-webkit-search-cancel-button { @apply hidden; }
+
+        .tagchip { @apply flex-none rounded border border-hairline bg-fill px-2 py-0.5 text-[0.6875rem] font-bold text-muted; }
+        .tagchip:active { @apply scale-95 text-fg; }
+        .morebtn { @apply mt-2.5 w-full rounded-md border border-hairline bg-fill py-2 text-[0.75rem] font-bold text-muted transition-transform duration-200; }
+        .morebtn:active { @apply scale-[0.98]; }
+
+        .segmented { @apply flex gap-1 rounded-lg border border-hairline bg-fill p-1; }
+        .segmented button { @apply flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 text-[0.8125rem] font-bold text-muted transition-colors duration-200; }
+        .segmented button[data-on="true"] { @apply bg-fill-2 text-fg; }
+        .segmented button:active { @apply scale-[0.98]; }
+
+        .kind-pill { @apply inline-flex items-center rounded px-2.5 py-1 text-[0.6875rem] font-extrabold uppercase tracking-[0.04em]; }
+        .coactor { @apply inline-flex items-center gap-1.5 rounded-md border border-hairline bg-fill px-2.5 py-1.5 text-[0.75rem] font-bold text-fg; }
+        .coactor:active { @apply scale-[0.97] border-hairline-strong; }
+        .ent-story { @apply flex w-full items-center gap-2.5 rounded-lg border border-hairline bg-fill px-3 py-2.5 transition-transform duration-200 ease-[cubic-bezier(0.32,0.72,0,1)]; }
+        .ent-story:active { @apply scale-[0.98]; }
+        .factlink { @apply inline-flex items-center gap-1 text-[0.75rem] font-bold text-[#5ac8fa]; }
+        .factlink:active { @apply opacity-70; }
+        .geo-chip { @apply inline-flex items-center gap-1 rounded-full border border-hairline bg-fill px-2 py-1 text-[0.6875rem] font-bold text-muted; }
+        .focus-chip { @apply absolute right-[calc(1rem+var(--safe-right))] inline-flex items-center gap-1.5 rounded-full border border-[#5ac8fa]/40 bg-[rgb(10_10_12_/_0.72)] px-2.5 py-1.5 text-[0.75rem] font-bold text-[#5ac8fa] shadow-[0_4px_16px_rgb(0_0_0_/_0.5)] backdrop-blur-[10px] backdrop-saturate-[1.6]; }
+        .watch-badge { @apply absolute -right-2 -top-1.5 grid h-[1.05rem] min-w-[1.05rem] place-items-center rounded-full bg-danger px-1 text-[0.625rem] font-extrabold text-white; }
+        .watch-term { @apply inline-flex items-center gap-1.5 rounded-md border border-hairline bg-fill px-3 py-1.5 text-[0.8125rem] font-bold text-fg; }
+        .watch-term:active { @apply scale-[0.97] border-hairline-strong; }
+        .watch-toggle { @apply flex w-full items-center justify-center gap-2 rounded-lg border border-hairline-strong bg-fill py-3 text-[0.9375rem] font-bold text-fg transition-colors duration-200; }
+        .watch-toggle[data-on="true"] { @apply border-[#5ac8fa]/40 bg-[#5ac8fa]/12 text-[#5ac8fa]; }
+        .watch-toggle:active { @apply scale-[0.98]; }
+
+        .card { @apply block w-full rounded-lg border border-hairline bg-fill px-4 py-[0.9rem] transition-[transform,border-color] duration-200 ease-[cubic-bezier(0.32,0.72,0,1)]; }
+        .card:active { @apply scale-[0.985]; }
+        .card[data-hot="true"] { @apply border-danger/35; }
+
+        .tier { @apply inline-flex flex-none items-center gap-[0.3rem] rounded-full border border-hairline px-2 py-[0.2rem] text-[0.625rem] font-extrabold uppercase tracking-[0.04em]; }
+        .tier-dot { @apply size-1.5 flex-none rounded-full; }
+        .tier[data-t="verified"] { @apply border-verify/35 bg-verify/10 text-verify; }
+        .tier[data-t="verified"] .tier-dot { @apply bg-verify; }
+        .tier[data-t="developing"] { @apply border-develop/35 bg-develop/10 text-develop; }
+        .tier[data-t="developing"] .tier-dot { @apply bg-develop; }
+        .tier[data-t="single"] { @apply text-muted; }
+        .tier[data-t="single"] .tier-dot { @apply bg-faint; }
+
+        .meter { @apply inline-flex gap-[0.1875rem]; }
+        .meter-seg { @apply h-[0.1875rem] w-[0.9375rem] rounded-full bg-fill-2; }
+        .meter[data-t="verified"] .meter-seg[data-on="true"] { @apply bg-verify; }
+        .meter[data-t="developing"] .meter-seg[data-on="true"] { @apply bg-develop; }
+        .meter[data-t="single"] .meter-seg[data-on="true"] { @apply bg-single; }
+
+        .src-tag { @apply flex-none rounded border border-hairline bg-fill-2 px-[0.45rem] py-[0.15rem] text-[0.625rem] font-extrabold uppercase tracking-[0.03em] text-muted; }
+
+        .skel { @apply h-24 rounded-lg; background: linear-gradient(90deg, var(--color-fill) 25%, var(--color-fill-2) 50%, var(--color-fill) 75%); background-size: 200% 100%; }
+
+        .lead { @apply text-[0.9375rem] leading-[1.55] text-fg/88; }
+        .section-label { @apply text-[0.6875rem] font-extrabold uppercase tracking-[0.12em] text-faint; }
+        .section-label::before { content: "// "; color: var(--color-cyan); opacity: 0.75; }
+        .tabular-nums { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+
+        .tl { @apply relative flex flex-col; }
+        .tl-item { @apply relative grid grid-cols-[1.25rem_1fr] gap-2.5 pb-4; }
+        .tl-item:last-child { @apply pb-0; }
+        .tl-rail { @apply relative flex justify-center; }
+        .tl-rail::before { content: ""; @apply absolute top-[0.9rem] bottom-[-0.1rem] w-[1.5px] bg-hairline; }
+        .tl-item:last-child .tl-rail::before { @apply hidden; }
+        .tl-dot { @apply relative z-[1] mt-[0.28rem] size-[0.6rem] rounded-full border-2 border-bg shadow-[0_0_0_1px_var(--color-hairline-strong)]; }
+        .tl-first .tl-dot { @apply bg-verify shadow-[0_0_0_3px_rgb(52_211_153_/_0.18)]; }
+        .tl-body { @apply min-w-0; }
+        .tl-meta { @apply flex items-center gap-2; }
+        .tl-time { @apply text-[0.6875rem] font-bold tabular-nums text-muted; }
+        .tl-text { @apply mt-[0.2rem] text-[0.8125rem] leading-[1.5] text-fg/78 [overflow-wrap:anywhere]; }
+
+        dialog { @apply m-0 h-full max-h-full w-full max-w-full overflow-hidden border-0 bg-transparent p-0 text-inherit; }
+        dialog::backdrop { @apply bg-black/55 opacity-0 backdrop-blur-[5px] backdrop-saturate-[1.2] transition-opacity duration-[400ms] ease-[cubic-bezier(0.22,1,0.36,1)]; }
+        dialog.dialog-shown::backdrop { @apply opacity-100; }
+
+        .sheet { @apply absolute inset-x-0 bottom-0 max-h-[86svh] translate-y-full overflow-y-auto rounded-t-2xl border-t border-hairline bg-[rgb(22_22_24_/_0.72)] shadow-[inset_0_1px_0_0_rgb(255_255_255_/_0.12)] backdrop-blur-[30px] backdrop-saturate-[1.8] backdrop-brightness-[1.06] [scrollbar-width:none] [touch-action:pan-y] transition-transform duration-[460ms] ease-[cubic-bezier(0.32,0.72,0,1)]; padding: 0.75rem calc(1.25rem + var(--safe-right)) calc(1.5rem + var(--safe-bottom)) calc(1.25rem + var(--safe-left)); }
+        .sheet::-webkit-scrollbar { @apply hidden; }
+        .dialog-shown .sheet { @apply translate-y-0; }
+        .grip { @apply mx-auto mb-5 h-[0.3125rem] w-10 rounded-full bg-white/25; }
+
+        .btn { @apply inline-flex w-full items-center justify-center gap-2 rounded-lg border border-hairline-strong px-5 py-[0.85rem] text-[0.9375rem] font-bold text-fg; }
+        .btn:active { @apply scale-[0.98]; }
+
+        .toast { @apply inline-flex -translate-y-[14px] items-center gap-2 rounded-full border border-hairline-strong bg-[rgb(22_22_24_/_0.82)] px-[0.95rem] py-[0.6rem] text-[0.8125rem] font-bold text-fg opacity-0 shadow-[0_12px_40px_rgb(0_0_0_/_0.5)] backdrop-blur-[24px] backdrop-saturate-[1.8] transition-[transform,opacity] duration-[320ms] ease-[cubic-bezier(0.32,0.72,0,1)]; }
+        .toast[data-show="true"] { @apply translate-y-0 opacity-100; }
+
+        .glabel { @apply absolute left-0 top-0 max-w-[40vw] translate-x-[-50%] translate-y-[calc(-100%-9px)] overflow-hidden text-ellipsis whitespace-nowrap rounded-full border border-hairline-strong bg-[rgb(10_10_12_/_0.7)] px-2 py-[0.16rem] text-[0.6875rem] font-extrabold tracking-[-0.01em] text-fg shadow-[0_4px_16px_rgb(0_0_0_/_0.55)] backdrop-blur-[10px] backdrop-saturate-[1.6] [pointer-events:auto]; }
+        .glabel::after { content: ""; @apply absolute bottom-[-8px] left-1/2 h-2 w-[1.5px] translate-x-[-50%]; background: linear-gradient(var(--color-hairline-strong), transparent); }
+        .glabel[data-t="verified"] { @apply text-verify; }
+        .glabel[data-t="developing"] { @apply text-develop; }
+      }
+
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(12px) scale(0.985); filter: blur(4px); }
+        to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+      }
+      @keyframes spin { to { transform: rotate(360deg) translateZ(0); } }
+      @keyframes breathe {
+        0%, 100% { transform: translate3d(0,0,0) scale(1); opacity: 1; }
+        50% { transform: translate3d(0,0,0) scale(0.62); opacity: 0.55; }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .rise { animation: rise 0.5s var(--ease-out) both; }
+        .spinner { animation: spin 0.9s linear infinite; will-change: transform; }
+        .breathe { animation: breathe 2.4s ease-in-out infinite; will-change: transform; }
+        .skel { animation: shimmer 1.4s linear infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        .hud-corner { position: absolute; width: 1.1rem; height: 1.1rem; border: 0 solid rgb(90 200 250 / 0.4); }
+        .hud-tl { left: 0.75rem; top: calc(0.75rem + var(--safe-top)); border-left-width: 1.5px; border-top-width: 1.5px; }
+        .hud-tr { right: 0.75rem; top: calc(0.75rem + var(--safe-top)); border-right-width: 1.5px; border-top-width: 1.5px; }
+        .hud-bl { left: 0.75rem; bottom: 1.15rem; border-left-width: 1.5px; border-bottom-width: 1.5px; }
+        .hud-br { right: 0.75rem; bottom: 1.15rem; border-right-width: 1.5px; border-bottom-width: 1.5px; }
+        .hud-reticle { position: absolute; left: 50%; top: 50%; width: 3rem; height: 3rem; transform: translate(-50%, -50%); border: 1px solid rgb(90 200 250 / 0.2); border-radius: 50%; }
+        .hud-reticle::before, .hud-reticle::after { content: ""; position: absolute; background: rgb(90 200 250 / 0.28); }
+        .hud-reticle::before { left: 50%; top: -7px; bottom: -7px; width: 1px; transform: translateX(-50%); }
+        .hud-reticle::after { top: 50%; left: -7px; right: -7px; height: 1px; transform: translateY(-50%); }
+        .hud-scan { position: absolute; left: 0; right: 0; top: 8%; height: 1.5px; background: linear-gradient(90deg, transparent, rgb(90 200 250 / 0.45), transparent); animation: scan 6s linear infinite; }
+        @keyframes scan { 0% { top: 8%; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { top: 92%; opacity: 0; } }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+      }
+    </style>
+    <script src="https://unpkg.com/iconify-icon@2" defer></script>
+  </head>
+  <body>
+    <div x-data="app" x-cloak class="flex h-svh flex-col">
+      <div
+        x-show="status !== 'ready'"
+        class="fixed inset-0 z-50 grid place-items-center bg-bg"
+      >
+        <div x-show="status === 'boot'" class="grid justify-items-center gap-4">
+          <span class="text-[0.8125rem] font-black uppercase tracking-[0.28em] text-muted">ORBITA</span>
+          <span class="spinner"></span>
+        </div>
+        <div x-show="status === 'fatal'" x-cloak class="grid w-full max-w-[22rem] justify-items-center gap-3 px-8 text-center">
+          <div class="disc"><iconify-icon class="ic" icon="lucide:satellite" aria-hidden="true"></iconify-icon></div>
+          <p class="text-[0.9375rem] leading-relaxed text-muted" x-text="fatal"></p>
+        </div>
+      </div>
+
+      <template x-if="status === 'ready'">
+        <div class="contents">
+          <header
+            class="pointer-events-none relative z-10 flex items-center justify-between gap-3 px-[calc(1rem+var(--safe-left))] pr-[calc(1rem+var(--safe-right))] pb-2"
+            :style="`padding-top: calc(0.5rem + var(--safe-top))`"
+          >
+            <div class="flex items-center gap-2">
+              <iconify-icon class="text-[1.15rem] text-cyan" icon="lucide:radar" aria-hidden="true"></iconify-icon>
+              <div class="flex flex-col leading-none">
+                <span class="font-mono text-[0.9375rem] font-extrabold tracking-[0.22em] text-fg">ORBITA</span>
+                <span class="mt-0.5 font-mono text-[0.5rem] font-medium uppercase tracking-[0.2em] text-faint">OSINT // GLOBAL</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button @click="openWatch()" class="relative flex items-center text-muted" aria-label="Отслеживаемое">
+                <iconify-icon class="text-[1.15rem]" :class="watch.length && 'text-cyan'" :icon="watch.length ? 'lucide:bell-ring' : 'lucide:bell'" aria-hidden="true"></iconify-icon>
+                <span x-show="watchAlerts > 0" class="watch-badge" x-text="watchAlerts > 9 ? '9+' : watchAlerts"></span>
+              </button>
+              <div class="flex items-center gap-1.5 font-mono text-[0.625rem] font-semibold uppercase tracking-[0.12em] text-muted">
+                <span class="tabular-nums" x-text="live ? 'LIVE' : syncLabel"></span>
+                <span
+                  class="h-[0.4375rem] w-[0.4375rem] rounded-full"
+                  :class="live ? 'bg-verify breathe' : 'bg-danger'"
+                  :style="live ? 'box-shadow:0 0 8px rgb(46 230 166/.7)' : 'box-shadow:0 0 8px rgb(255 77 79/.7)'"
+                ></span>
+              </div>
+            </div>
+          </header>
+
+          <section class="relative -mt-[calc(0.5rem+var(--safe-top)+2.25rem)] h-[46svh] min-h-[15rem] flex-none overflow-hidden">
+            <div class="absolute inset-0" x-ref="globe"></div>
+
+            <div x-show="globeReady" class="pointer-events-none absolute inset-0 overflow-hidden">
+              <span class="hud-corner hud-tl"></span>
+              <span class="hud-corner hud-tr"></span>
+              <span class="hud-corner hud-bl"></span>
+              <span class="hud-corner hud-br"></span>
+              <span class="hud-reticle"></span>
+              <span class="hud-scan"></span>
+            </div>
+            <div
+              x-show="!globeReady"
+              class="absolute inset-0 grid place-items-center text-[0.6875rem] uppercase tracking-[0.22em] text-faint"
+            >инициализация</div>
+            <div
+              x-show="globeReady"
+              class="pointer-events-none absolute left-[calc(1rem+var(--safe-left))] flex flex-col gap-0.5 font-mono text-[0.5625rem] uppercase tracking-[0.14em]"
+              :style="`top: calc(var(--safe-top) + 3rem)`"
+            >
+              <span class="mb-0.5 flex items-center gap-1.5 text-[#5ac8fa]"><span class="h-1 w-1 rounded-full bg-verify breathe"></span>GLOBAL MONITOR</span>
+              <span class="text-faint">СОБЫТИЙ <span class="tabular-nums text-fg" x-text="visible.length"></span></span>
+              <span class="text-faint">ПРОВЕРЕНО <span class="tabular-nums text-verify" x-text="verifiedCount"></span></span>
+            </div>
+            <div class="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-linear-to-b from-transparent to-bg"></div>
+            <button
+              x-show="entityFocus"
+              @click="clearFocus()"
+              class="focus-chip"
+              :style="`top: calc(var(--safe-top) + 3rem)`"
+            >
+              <iconify-icon class="text-[0.8rem]" icon="lucide:crosshair" aria-hidden="true"></iconify-icon>
+              <span class="max-w-[9rem] truncate" x-text="entityFocus?.name"></span>
+              <iconify-icon class="text-[0.85rem] text-faint" icon="lucide:x" aria-hidden="true"></iconify-icon>
+            </button>
+          </section>
+
+          <div class="flex-none px-[calc(1rem+var(--safe-left))] pr-[calc(1rem+var(--safe-right))] pb-2">
+            <div class="segmented">
+              <button :data-on="view === 'feed'" @click="setView('feed')">
+                <iconify-icon class="text-[0.95rem]" icon="lucide:layout-list" aria-hidden="true"></iconify-icon>
+                <span>Лента</span>
+              </button>
+              <button :data-on="view === 'graph'" @click="setView('graph')">
+                <iconify-icon class="text-[0.95rem]" icon="lucide:workflow" aria-hidden="true"></iconify-icon>
+                <span>Граф связей</span>
+              </button>
+            </div>
+          </div>
+
+          <div x-show="view === 'feed'" class="flex-none px-[calc(1rem+var(--safe-left))] pr-[calc(1rem+var(--safe-right))] pb-2">
+            <label class="search">
+              <iconify-icon class="text-[1rem] text-faint" icon="lucide:search" aria-hidden="true"></iconify-icon>
+              <input
+                type="search" inputmode="search" enterkeyhint="search" autocomplete="off"
+                placeholder="Поиск событий, мест, тем"
+                x-model="query"
+                @input.debounce.350ms="runSearch()"
+                @search="runSearch()"
+              />
+              <button x-show="query" @click="clearSearch()" aria-label="Очистить" class="text-faint">
+                <iconify-icon class="text-[1.05rem]" icon="lucide:x" aria-hidden="true"></iconify-icon>
+              </button>
+            </label>
+          </div>
+
+          <nav x-show="view === 'feed'" class="flex flex-none gap-2 overflow-x-auto px-[calc(1rem+var(--safe-left))] pr-[calc(1rem+var(--safe-right))] pb-1 [-ms-overflow-style:none] [scrollbar-width:none]">
+            <template x-for="f in filters" :key="f.key">
+              <button class="chip" :data-on="activeFilter === f.key" @click="setFilter(f.key)">
+                <span x-text="f.label"></span>
+                <span class="chip-n" x-text="countFor(f.key)"></span>
+              </button>
+            </template>
+          </nav>
+
+          <main
+            x-show="view === 'feed'"
+            class="flex-1 overflow-y-auto px-[calc(1rem+var(--safe-left))] pr-[calc(1rem+var(--safe-right))] pt-2.5 [-webkit-overflow-scrolling:touch] [scrollbar-width:none]"
+            style="padding-bottom: calc(1.5rem + var(--safe-bottom))"
+            x-ref="feed"
+          >
+            <template x-if="loading">
+              <div class="flex flex-col gap-2.5">
+                <template x-for="i in 5" :key="i"><div class="skel"></div></template>
+              </div>
+            </template>
+
+            <template x-if="!loading && error">
+              <div class="grid justify-items-center gap-3 py-14 text-center">
+                <div class="disc"><iconify-icon class="ic" icon="lucide:cloud-off" aria-hidden="true"></iconify-icon></div>
+                <p class="max-w-[16rem] text-[0.875rem] leading-relaxed text-muted">Не удалось загрузить события. Проверьте связь.</p>
+                <button class="btn max-w-[12rem]" @click="load()">Повторить</button>
+              </div>
+            </template>
+
+            <template x-if="!loading && !error && !visible.length">
+              <div class="grid justify-items-center gap-3 py-14 text-center">
+                <div class="disc"><iconify-icon class="ic" icon="lucide:radar" aria-hidden="true"></iconify-icon></div>
+                <p class="max-w-[17rem] text-[0.875rem] leading-relaxed text-muted">Событий по фильтру нет. Картина обновляется каждые 15 минут.</p>
+              </div>
+            </template>
+
+            <div x-show="!loading && !error && visible.length" x-stagger class="flex flex-col gap-5">
+              <template x-for="g in groupedFeed" :key="g.folder">
+                <section>
+                  <div class="mb-2.5 flex items-center gap-2">
+                    <span class="section-label" x-text="g.folder"></span>
+                    <span class="h-px flex-1 bg-hairline"></span>
+                    <span class="text-[0.6875rem] font-bold tabular-nums text-faint" x-text="g.total"></span>
+                  </div>
+                  <ul class="flex flex-col gap-2.5">
+                    <template x-for="s in g.items" :key="s.id">
+                      <li>
+                        <button class="card" :data-hot="s.priority === 'high'" @click="open(s)">
+                          <h2 class="text-[0.9375rem] font-bold leading-snug text-fg text-balance" x-text="s.title"></h2>
+                          <p x-show="cardSummary(s)" class="mt-1.5 line-clamp-2 text-[0.8125rem] leading-snug text-muted" x-text="cardSummary(s)"></p>
+                          <div class="mt-2.5 flex items-center gap-2 text-[0.6875rem] font-semibold text-faint">
+                            <span class="h-1.5 w-1.5 flex-none rounded-full" :class="tierDot(s.tier)"></span>
+                            <span :class="tierTextClass(s.tier)" x-text="tierLabel(s.tier)"></span>
+                            <span x-show="s.source_count > 1" class="flex items-center gap-1">
+                              <iconify-icon class="text-[0.8rem]" icon="lucide:radio" aria-hidden="true"></iconify-icon>
+                              <span class="tabular-nums" x-text="s.source_count"></span>
+                            </span>
+                            <span x-show="s.place" class="flex min-w-0 items-center gap-1">
+                              <iconify-icon class="text-[0.8rem]" icon="lucide:map-pin" aria-hidden="true"></iconify-icon>
+                              <span class="truncate" x-text="s.place ? s.place.split(',')[0] : ''"></span>
+                            </span>
+                            <time class="ml-auto flex-none tabular-nums" x-text="ago(s.last_seen)"></time>
+                          </div>
+                          <div x-show="cardTags(s).length" class="mt-2 flex flex-wrap gap-1.5">
+                            <template x-for="t in cardTags(s)" :key="t">
+                              <button class="tagchip" @click.stop="quickWatch(t)" x-text="'#' + t"></button>
+                            </template>
+                          </div>
+                        </button>
+                      </li>
+                    </template>
+                  </ul>
+                  <button x-show="g.total > g.items.length" @click="expandFolder(g.folder)" class="morebtn" x-text="`Показать все · ${g.total}`"></button>
+                </section>
+              </template>
+            </div>
+          </main>
+
+          <section x-show="view === 'graph'" class="relative flex-1 overflow-hidden">
+            <div class="absolute inset-0" x-ref="graph"></div>
+            <div x-show="graphLoading" class="absolute inset-0 grid place-items-center text-[0.6875rem] uppercase tracking-[0.22em] text-faint">построение графа</div>
+            <div x-show="!graphLoading && !graph.nodes.length" class="absolute inset-0 grid place-items-center px-8 text-center text-[0.875rem] text-muted">Недостаточно связей для графа. Он строится по совместным упоминаниям акторов в событиях.</div>
+            <div class="pointer-events-none absolute bottom-[calc(0.75rem+var(--safe-bottom))] left-[calc(1rem+var(--safe-left))] flex gap-3 text-[0.6875rem] font-bold text-muted">
+              <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-[#5ac8fa]"></span>Персоны</span>
+              <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-[#f0a832]"></span>Организации</span>
+              <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-[#ff453a]"></span>Оружие</span>
+            </div>
+          </section>
+        </div>
+      </template>
+
+      <div
+        class="pointer-events-none fixed inset-x-0 z-[60] flex justify-center px-4"
+        :style="`top: calc(var(--safe-top) + 0.5rem)`"
+      >
+        <button class="toast pointer-events-auto" :data-show="toast.show" @click="applyToast()">
+          <span class="h-[0.375rem] w-[0.375rem] rounded-full bg-develop breathe"></span>
+          <span x-text="toast.text"></span>
+        </button>
+      </div>
+
+      <dialog
+        x-ref="sheet"
+        @close="onSheetClose()"
+        @cancel.prevent="close()"
+        @click="$event.target === $el && close()"
+        aria-label="Событие"
+      >
+        <div x-sheet="close()" class="sheet">
+          <div class="grip"></div>
+          <div class="mx-auto max-w-[30rem]">
+            <template x-if="detail">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="tier" :data-t="detail.tier">
+                    <span class="tier-dot"></span>
+                    <span x-text="tierLabel(detail.tier)"></span>
+                  </span>
+                  <span class="meter" :data-t="detail.tier">
+                    <template x-for="i in 5" :key="i">
+                      <span class="meter-seg" :data-on="i <= Math.round(detail.credibility / 20)"></span>
+                    </template>
+                  </span>
+                  <span class="ml-auto text-[0.75rem] font-bold tabular-nums" :class="tierTextClass(detail.tier)" x-text="detail.credibility + '/100'"></span>
+                </div>
+
+                <h2 class="mt-3 text-[1.1875rem] font-extrabold leading-[1.28] text-balance" x-text="detail.title"></h2>
+
+                <div class="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[0.75rem] font-semibold text-muted">
+                  <span x-show="detail.place" class="flex items-center gap-1">
+                    <iconify-icon class="text-[0.8125rem]" icon="lucide:map-pin" aria-hidden="true"></iconify-icon>
+                    <span x-text="detail.place"></span>
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <iconify-icon class="text-[0.8125rem]" icon="lucide:radio" aria-hidden="true"></iconify-icon>
+                    <span x-text="detail.source_count + ' · ' + detail.source_type_count + ' тип.'"></span>
+                  </span>
+                  <span class="flex items-center gap-1 tabular-nums">
+                    <iconify-icon class="text-[0.8125rem]" icon="lucide:clock" aria-hidden="true"></iconify-icon>
+                    <span x-text="span(detail)"></span>
+                  </span>
+                </div>
+
+                <p x-show="lead" class="lead mt-3.5" x-text="lead"></p>
+
+                <div class="mt-4 rounded-lg border border-hairline bg-fill p-3.5">
+                  <div class="flex items-center justify-between">
+                    <span class="section-label">Проверка фактов</span>
+                    <span class="tier" :data-t="detail.tier">
+                      <span class="tier-dot"></span>
+                      <span x-text="verdict(detail)"></span>
+                    </span>
+                  </div>
+                  <ul class="mt-3 flex flex-col gap-2.5 text-[0.8125rem]">
+                    <li class="flex items-center gap-2">
+                      <iconify-icon class="text-[1rem]" :class="detail.source_count > 1 ? 'text-verify' : 'text-faint'" :icon="detail.source_count > 1 ? 'lucide:circle-check-big' : 'lucide:circle'" aria-hidden="true"></iconify-icon>
+                      <span class="text-muted">Независимых источников</span>
+                      <span class="ml-auto font-bold tabular-nums text-fg" x-text="detail.source_count"></span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <iconify-icon class="text-[1rem]" :class="detail.agency_count >= 2 ? 'text-verify' : detail.agency_count === 1 ? 'text-develop' : 'text-faint'" :icon="detail.agency_count >= 2 ? 'lucide:circle-check-big' : 'lucide:circle-dashed'" aria-hidden="true"></iconify-icon>
+                      <span class="text-muted">Подтверждение агентствами</span>
+                      <span class="ml-auto font-bold tabular-nums text-fg" x-text="detail.agency_count"></span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <iconify-icon class="text-[1rem]" :class="detail.source_type_count > 1 ? 'text-verify' : 'text-faint'" :icon="detail.source_type_count > 1 ? 'lucide:circle-check-big' : 'lucide:circle'" aria-hidden="true"></iconify-icon>
+                      <span class="text-muted">Типов источников</span>
+                      <span class="ml-auto font-bold tabular-nums text-fg" x-text="detail.source_type_count"></span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                      <iconify-icon class="text-[1rem]" :class="detail.lat != null ? 'text-verify' : 'text-faint'" :icon="detail.lat != null ? 'lucide:circle-check-big' : 'lucide:circle'" aria-hidden="true"></iconify-icon>
+                      <span class="text-muted">Геоподтверждение</span>
+                      <span class="ml-auto font-bold text-fg" x-text="detail.lat != null ? 'есть' : 'нет'"></span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div class="mt-5 flex items-center gap-2">
+                  <span class="section-label">Хронология</span>
+                  <span class="h-px flex-1 bg-hairline"></span>
+                  <span class="text-[0.6875rem] font-bold tabular-nums text-faint" x-text="chronology.length"></span>
+                </div>
+
+                <template x-if="membersLoading">
+                  <div class="mt-4 flex flex-col gap-2.5">
+                    <div class="skel !h-[3rem]"></div>
+                    <div class="skel !h-[3rem]"></div>
+                    <div class="skel !h-[3rem]"></div>
+                  </div>
+                </template>
+
+                <div x-show="!membersLoading" class="tl mt-4">
+                  <template x-for="(m, i) in chronology" :key="m.id">
+                    <div class="tl-item" :class="i === 0 && 'tl-first'">
+                      <div class="tl-rail">
+                        <span class="tl-dot" :style="i === 0 ? '' : srcDot(m.source_type)"></span>
+                      </div>
+                      <button class="tl-body text-left" @click="openUrl(m.url)">
+                        <div class="tl-meta">
+                          <span class="src-tag" :style="srcColor(m.source_type)" x-text="m.source_name"></span>
+                          <time class="tl-time" x-text="stamp(m.published_at)"></time>
+                          <iconify-icon x-show="m.url" class="text-[0.8125rem] text-faint" icon="lucide:arrow-up-right" aria-hidden="true"></iconify-icon>
+                        </div>
+                        <p class="tl-text" x-text="m.body || m.title"></p>
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </dialog>
+
+      <dialog
+        x-ref="ent"
+        @close="onEntClose()"
+        @cancel.prevent="closeEntity()"
+        @click="$event.target === $el && closeEntity()"
+        aria-label="Досье"
+      >
+        <div x-sheet="closeEntity()" class="sheet">
+          <div class="grip"></div>
+          <div class="mx-auto max-w-[30rem]">
+            <template x-if="entity">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="kind-pill" :style="kindStyle(entity.entity.kind)" x-text="kindLabel(entity.entity.kind)"></span>
+                  <span class="ml-auto flex items-center gap-1 text-[0.75rem] font-bold tabular-nums text-muted">
+                    <iconify-icon class="text-[0.85rem]" icon="lucide:activity" aria-hidden="true"></iconify-icon>
+                    <span x-text="entity.entity.mentions"></span>
+                    <span class="font-semibold text-faint">упоминаний</span>
+                  </span>
+                </div>
+
+                <h2 class="mt-3 text-[1.25rem] font-extrabold leading-tight text-balance" x-text="entity.entity.name"></h2>
+
+                <button
+                  class="watch-toggle mt-3"
+                  :data-on="isWatched(entity.entity.name)"
+                  @click="isWatched(entity.entity.name) ? removeWatch(entity.entity.name.toLowerCase()) : addWatch(entity.entity.name)"
+                >
+                  <iconify-icon class="text-[0.95rem]" :icon="isWatched(entity.entity.name) ? 'lucide:bell-ring' : 'lucide:bell-plus'" aria-hidden="true"></iconify-icon>
+                  <span x-text="isWatched(entity.entity.name) ? 'Отслеживается' : 'Отслеживать'"></span>
+                </button>
+
+                <div class="mt-4 rounded-lg border border-hairline bg-fill p-3.5">
+                  <div class="flex items-center justify-between">
+                    <span class="section-label">Активность · 14 дней</span>
+                    <button x-show="entHasGeo" class="factlink" @click="focusEntity()">
+                      <iconify-icon class="text-[0.9rem]" icon="lucide:globe" aria-hidden="true"></iconify-icon>
+                      <span>На карте</span>
+                    </button>
+                  </div>
+                  <div class="mt-3 flex h-10 items-end gap-[3px]">
+                    <template x-for="(t, i) in entity.timeline" :key="i">
+                      <div class="flex-1 rounded-t transition-[height]" :class="t.n > 0 ? 'bg-[#5ac8fa]' : 'bg-fill-2'" :style="`height:${barH(t.n)}%`"></div>
+                    </template>
+                  </div>
+                  <div x-show="entity.places.length" class="mt-3 flex flex-wrap gap-1.5">
+                    <template x-for="p in entity.places" :key="p.place">
+                      <span class="geo-chip">
+                        <iconify-icon class="text-[0.7rem]" icon="lucide:map-pin" aria-hidden="true"></iconify-icon>
+                        <span x-text="p.place.split(',')[0]"></span>
+                        <span class="text-faint tabular-nums" x-text="p.n"></span>
+                      </span>
+                    </template>
+                  </div>
+                </div>
+
+                <template x-if="entity.coactors.length">
+                  <div>
+                    <div class="mt-5 flex items-center gap-2">
+                      <span class="section-label">Связанные акторы</span>
+                      <span class="h-px flex-1 bg-hairline"></span>
+                    </div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      <template x-for="c in entity.coactors" :key="c.id">
+                        <button class="coactor" @click="openEntity(c.id)">
+                          <span class="size-1.5 rounded-full" :style="`background:${kindColor(c.kind)}`"></span>
+                          <span x-text="c.name"></span>
+                          <span class="text-faint tabular-nums" x-text="c.shared"></span>
+                        </button>
+                      </template>
+                    </div>
+                  </div>
+                </template>
+
+                <div class="mt-5 flex items-center gap-2">
+                  <span class="section-label">События</span>
+                  <span class="h-px flex-1 bg-hairline"></span>
+                  <span class="text-[0.6875rem] font-bold tabular-nums text-faint" x-text="entity.stories.length"></span>
+                </div>
+                <ul class="mt-3 flex flex-col gap-2">
+                  <template x-for="s in entity.stories" :key="s.id">
+                    <li>
+                      <button class="ent-story" @click="openFromEntity(s)">
+                        <span class="tier shrink-0" :data-t="s.tier"><span class="tier-dot"></span></span>
+                        <span class="min-w-0 flex-1 truncate text-left text-[0.8125rem] font-semibold text-fg" x-text="s.title"></span>
+                        <time class="shrink-0 text-[0.6875rem] font-semibold tabular-nums text-faint" x-text="ago(new Date(s.last_seen).getTime())"></time>
+                      </button>
+                    </li>
+                  </template>
+                </ul>
+              </div>
+            </template>
+          </div>
+        </div>
+      </dialog>
+
+      <dialog
+        x-ref="watch"
+        @close="onWatchClose()"
+        @cancel.prevent="closeWatch()"
+        @click="$event.target === $el && closeWatch()"
+        aria-label="Отслеживание"
+      >
+        <div x-sheet="closeWatch()" class="sheet">
+          <div class="grip"></div>
+          <div class="mx-auto max-w-[30rem]">
+            <div class="flex items-center gap-2">
+              <iconify-icon class="text-[1.1rem] text-fg" icon="lucide:bell-ring" aria-hidden="true"></iconify-icon>
+              <h2 class="text-[1.125rem] font-extrabold">Отслеживание</h2>
+            </div>
+            <p class="mt-1.5 text-[0.8125rem] leading-relaxed text-muted">Ключевые слова и акторы. При новом событии по ним придёт уведомление внутри приложения.</p>
+
+            <label class="search mt-4">
+              <iconify-icon class="text-[1rem] text-faint" icon="lucide:plus" aria-hidden="true"></iconify-icon>
+              <input
+                type="text" enterkeyhint="done" autocomplete="off" placeholder="Добавить слово или актора"
+                x-model="watchInput"
+                @keydown.enter.prevent="addWatchInput()"
+              />
+              <button x-show="watchInput.trim()" @click="addWatchInput()" class="text-[#5ac8fa] font-bold text-[0.8125rem]">Добавить</button>
+            </label>
+
+            <div x-show="watch.length" class="mt-3 flex flex-wrap gap-2">
+              <template x-for="t in watch" :key="t">
+                <button class="watch-term" @click="removeWatch(t)">
+                  <span x-text="t"></span>
+                  <iconify-icon class="text-[0.85rem] text-faint" icon="lucide:x" aria-hidden="true"></iconify-icon>
+                </button>
+              </template>
+            </div>
+            <p x-show="!watch.length" class="mt-3 text-[0.8125rem] text-faint">Список пуст. Добавьте слово выше или кнопкой «Отслеживать» в досье актора.</p>
+
+            <template x-if="watch.length">
+              <div>
+                <div class="mt-5 flex items-center gap-2">
+                  <span class="section-label">Совпадения</span>
+                  <span class="h-px flex-1 bg-hairline"></span>
+                  <span class="text-[0.6875rem] font-bold tabular-nums text-faint" x-text="watchMatches.length"></span>
+                </div>
+                <p x-show="!watchMatches.length" class="mt-3 text-[0.8125rem] text-faint">Пока нет событий по вашим темам.</p>
+                <ul class="mt-3 flex flex-col gap-2">
+                  <template x-for="s in watchMatches" :key="s.id">
+                    <li>
+                      <button class="ent-story" @click="openFromWatch(s)">
+                        <span class="tier shrink-0" :data-t="s.tier"><span class="tier-dot"></span></span>
+                        <span class="min-w-0 flex-1 truncate text-left text-[0.8125rem] font-semibold text-fg" x-text="s.title"></span>
+                        <time class="shrink-0 text-[0.6875rem] font-semibold tabular-nums text-faint" x-text="ago(s.last_seen)"></time>
+                      </button>
+                    </li>
+                  </template>
+                </ul>
+              </div>
+            </template>
+          </div>
+        </div>
+      </dialog>
+    </div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "alpinejs": "https://esm.sh/alpinejs@3.15.12",
+          "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.108.2",
+          "@telegram-apps/sdk": "https://esm.sh/@telegram-apps/sdk@3.11.8",
+          "@use-gesture/vanilla": "https://esm.sh/@use-gesture/vanilla@10.3.1",
+          "motion/mini": "https://esm.sh/motion@12/mini",
+          "globe.gl": "https://esm.sh/globe.gl@2.34.4",
+          "force-graph": "https://esm.sh/force-graph@1.49.5"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import Alpine from "alpinejs";
+      import { createClient } from "@supabase/supabase-js";
+      import {
+        init as initTelegram,
+        isTMA,
+        miniApp,
+        viewport,
+        swipeBehavior,
+        closingBehavior,
+        backButton,
+        cloudStorage,
+        hapticFeedback,
+        openTelegramLink,
+        openLink,
+        postEvent,
+      } from "@telegram-apps/sdk";
+      import { DragGesture } from "@use-gesture/vanilla";
+      import { animate as motionAnimate } from "motion/mini";
+      import Globe from "globe.gl";
+      import ForceGraph from "force-graph";
+
+      const CONFIG = {
+        SUPABASE_URL: "https://xpyjmvzewqikxhkdoqog.supabase.co",
+        SUPABASE_KEY: "sb_publishable_3-f4f3PXrWpsRblrS5aI-w_vGXR_pfD",
+        FEED_LIMIT: 120,
+      };
+
+      const supabase = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY);
+
+      const log = (...a) => console.warn("[orbita]", ...a);
+      const safe = (fn) => {
+        try {
+          const r = fn();
+          return r && typeof r.then === "function" ? r.catch((e) => (log(e), undefined)) : r;
+        } catch (e) {
+          log(e);
+          return undefined;
+        }
+      };
+      const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const haptic = {
+        impact: (s = "light") => safe(() => hapticFeedback.impactOccurred(s)),
+        select: () => safe(() => hapticFeedback.selectionChanged()),
+      };
+      const withTimeout = (p, ms) =>
+        Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error("timeout")), ms))]);
+
+      const DT = new Intl.DateTimeFormat("ru", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+      const TIER_LABEL = { verified: "проверено", developing: "развивается", single: "один источник" };
+      const SRC_COLOR = {
+        tg_channel: "color:#5ac8fa;border-color:rgb(90 200 250/.35)",
+        gdelt: "color:#ff9f0a;border-color:rgb(255 159 10/.3)",
+        usgs: "color:#c88fe0;border-color:rgb(200 143 224/.35)",
+        firms: "color:#c88fe0;border-color:rgb(200 143 224/.35)",
+        rss: "",
+      };
+      const SRC_DOT = {
+        tg_channel: "#5ac8fa",
+        gdelt: "#ff9f0a",
+        usgs: "#c88fe0",
+        firms: "#c88fe0",
+        rss: "#8a8a90",
+      };
+      const KIND_COLOR = { person: "#5ac8fa", org: "#f0a832", weapon: "#ff453a" };
+      const KIND_LABEL = { person: "Персона", org: "Организация", weapon: "Оружие" };
+      const FOLDER_ORDER = ["Война", "Политика", "Экономика", "Происшествия", "Стихия", "Технологии", "Спорт", "Общество"];
+      const TOPIC_FOLDER = { Конфликт: "Война", Политика: "Политика", Экономика: "Экономика", Происшествия: "Происшествия", Стихия: "Стихия", Технологии: "Технологии", Спорт: "Спорт", Мир: "Общество" };
+
+      const PR = new Intl.PluralRules("ru");
+      const EVENT_WORDS = { one: "новое событие", few: "новых события", many: "новых событий", other: "новых событий" };
+
+      Alpine.directive("sheet", (el, { expression }, { evaluate, cleanup }) => {
+        const DISMISS = 110;
+        let engaged = false, dragging = false;
+        const reset = () => {
+          el.style.transition = "";
+          el.style.transform = "";
+          el.style.willChange = "";
+          el.style.overflowY = "";
+          engaged = dragging = false;
+        };
+        const canDrag = (node) => {
+          for (let n = node; n && n !== el.parentNode; n = n.parentNode)
+            if (n.scrollTop > 0) return false;
+          return true;
+        };
+        const gesture = new DragGesture(
+          el,
+          (state) => {
+            const my = state.movement[1];
+            if (state.first) { engaged = canDrag(state.event.target); dragging = false; }
+            if (!engaged) return;
+            if (state.active) {
+              if (!dragging) {
+                if (state.axis !== "y" || my <= 0) { engaged = false; return; }
+                dragging = true;
+                el.style.transition = "none";
+                el.style.willChange = "transform";
+                el.style.overflowY = "hidden";
+              }
+              if (state.event?.cancelable) state.event.preventDefault();
+              el.style.transform = `translateY(${Math.max(0, my)}px)`;
+            } else {
+              const fling = state.velocity[1] > 0.5 && state.direction[1] > 0;
+              const shouldClose = dragging && (my > DISMISS || fling);
+              reset();
+              if (shouldClose) { haptic.select(); evaluate(expression); }
+            }
+          },
+          { axis: "y", filterTaps: true, threshold: 6, pointer: { touch: true }, eventOptions: { passive: false } },
+        );
+        cleanup(() => gesture.destroy());
+      });
+
+      Alpine.directive("stagger", (el, {}, { cleanup }) => {
+        if (reducedMotion()) return;
+        let raf = 0;
+        const run = () => {
+          const items = [...el.children];
+          items.forEach((c, i) => {
+            motionAnimate(
+              c,
+              { opacity: [0, 1], transform: ["translateY(10px) scale(0.985)", "translateY(0) scale(1)"] },
+              { duration: 0.42, delay: Math.min(i * 0.035, 0.4), easing: [0.22, 1, 0.36, 1] },
+            );
+          });
+        };
+        const obs = new MutationObserver(() => {
+          cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(run);
+        });
+        obs.observe(el, { childList: true });
+        raf = requestAnimationFrame(run);
+        cleanup(() => { obs.disconnect(); cancelAnimationFrame(raf); });
+      });
+
+      Alpine.data("app", () => ({
+        status: "boot",
+        fatal: "",
+        stories: [],
+        members: [],
+        loading: true,
+        membersLoading: false,
+        error: false,
+        activeFilter: "all",
+        query: "",
+        searching: false,
+        view: "feed",
+        graph: { nodes: [], links: [] },
+        graphLoading: false,
+        entityFocus: null,
+        detail: null,
+        entity: null,
+        watch: [],
+        watchAlerts: 0,
+        watchInput: "",
+        globeReady: false,
+        lastSync: null,
+        now: Date.now(),
+        live: false,
+        toast: { show: false, text: "" },
+        _globe: null,
+        _ro: null,
+        _fg: null,
+        _fgRo: null,
+        _chan: null,
+        _clock: null,
+        _toastTimer: null,
+        _focusTimer: null,
+        _newTimer: null,
+        _newCount: 0,
+        _seq: 0,
+        _seen: new Set(),
+
+        expandedFolders: {},
+        filters: [
+          { key: "all", label: "Все" },
+          { key: "hot", label: "Срочное" },
+          { key: "Война", label: "Война" },
+          { key: "Политика", label: "Политика" },
+          { key: "Экономика", label: "Экономика" },
+          { key: "Происшествия", label: "Происшествия" },
+          { key: "Стихия", label: "Стихия" },
+          { key: "Технологии", label: "Технологии" },
+          { key: "Спорт", label: "Спорт" },
+          { key: "Общество", label: "Общество" },
+        ],
+
+        async init() {
+          addEventListener("unhandledrejection", (e) => log("rejection", e.reason));
+          document.addEventListener("touchstart", () => {}, { passive: true });
+
+          let inside = false;
+          try { inside = isTMA("simple"); } catch { inside = false; }
+          if (!inside) {
+            this.fatal = "Откройте приложение внутри Telegram.";
+            this.status = "fatal";
+            return;
+          }
+
+          await this.boot();
+          this.status = "ready";
+          await this.loadWatch();
+          this._clock = setInterval(() => (this.now = Date.now()), 30000);
+          await this.load();
+          this.subscribeRealtime();
+          this.$nextTick(() => this.mountGlobe());
+          this.$watch("visible", () => this.paintGlobe());
+        },
+
+        destroy() {
+          clearInterval(this._clock);
+          clearTimeout(this._toastTimer);
+          clearTimeout(this._focusTimer);
+          clearTimeout(this._newTimer);
+          this._ro?.disconnect();
+          this._fgRo?.disconnect();
+          safe(() => this._fg?.pauseAnimation?.());
+          if (this._chan) safe(() => supabase.removeChannel(this._chan));
+          this._globe?._destructor?.();
+        },
+
+        subscribeRealtime() {
+          this._chan = supabase
+            .channel("orbita-stories")
+            .on("postgres_changes", { event: "*", schema: "public", table: "stories" }, (payload) => this.onRealtime(payload))
+            .subscribe((status) => {
+              this.live = status === "SUBSCRIBED";
+              if (status === "SUBSCRIBED") this.load(true);
+            });
+        },
+
+        onRealtime(payload) {
+          if (this.searching) return;
+          if (payload.eventType === "DELETE") {
+            this.stories = this.stories.filter((x) => x.id !== payload.old.id);
+            return;
+          }
+          const row = payload.new;
+          const known = this.stories.some((x) => x.id === row.id) || this._seen.has(row.id);
+          this.mergeStory(row);
+          this.lastSync = Date.now();
+          if (payload.eventType === "INSERT" && !known) {
+            this._seen.add(row.id);
+            if (this.matchesWatch(row)) {
+              this.watchAlerts++;
+              this.showToast("🔔 Отслеживаемое: новое событие");
+              haptic.impact("medium");
+            } else {
+              this.notifyNew();
+            }
+          }
+        },
+
+        mergeStory(row) {
+          const s = this.mapRow(row);
+          const i = this.stories.findIndex((x) => x.id === s.id);
+          const next = i >= 0 ? this.stories.map((x, k) => (k === i ? s : x)) : [s, ...this.stories];
+          this.stories = this.dedup(next.sort((a, b) => b.last_seen - a.last_seen)).slice(0, CONFIG.FEED_LIMIT);
+        },
+
+        notifyNew() {
+          this._newCount = (this._newCount || 0) + 1;
+          clearTimeout(this._newTimer);
+          this._newTimer = setTimeout(() => {
+            const n = this._newCount;
+            this._newCount = 0;
+            if (n > 0) this.showToast(`${n} ${EVENT_WORDS[PR.select(n)]}`);
+          }, 1400);
+        },
+
+        async boot() {
+          safe(() => initTelegram());
+          safe(() => { if (miniApp.mount.isAvailable()) miniApp.mount(); });
+          safe(() => { if (miniApp.setHeaderColor.isAvailable()) miniApp.setHeaderColor("#000000"); });
+          safe(() => { if (miniApp.setBackgroundColor.isAvailable()) miniApp.setBackgroundColor("#000000"); });
+          if (safe(() => viewport.mount.isAvailable())) await safe(() => viewport.mount());
+          safe(() => { if (viewport.expand.isAvailable()) viewport.expand(); });
+          if (safe(() => viewport.requestFullscreen.isAvailable())) await safe(() => viewport.requestFullscreen());
+          this.bindSafeArea();
+          safe(() => postEvent("web_app_toggle_orientation_lock", { locked: true }));
+          safe(() => {
+            if (!swipeBehavior.mount.isAvailable()) return;
+            swipeBehavior.mount();
+            if (swipeBehavior.disableVertical.isAvailable()) swipeBehavior.disableVertical();
+          });
+          safe(() => { if (closingBehavior.mount.isAvailable()) closingBehavior.mount(); });
+          safe(() => {
+            if (!backButton.mount.isAvailable()) return;
+            backButton.mount();
+            backButton.onClick(() => this.closeTop());
+          });
+        },
+
+        bindSafeArea() {
+          const root = document.documentElement.style;
+          const apply = () => {
+            const s = safe(() => viewport.safeAreaInsets()) ?? {};
+            const c = safe(() => viewport.contentSafeAreaInsets()) ?? {};
+            const px = (a, b) => `${(a ?? 0) + (b ?? 0)}px`;
+            root.setProperty("--safe-top", px(s.top, c.top));
+            root.setProperty("--safe-bottom", px(s.bottom, c.bottom));
+            root.setProperty("--safe-left", px(s.left, c.left));
+            root.setProperty("--safe-right", px(s.right, c.right));
+            root.setProperty("--sa-top", `${s.top ?? 0}px`);
+            root.setProperty("--sa-right", `${s.right ?? 0}px`);
+          };
+          apply();
+          safe(() => viewport.safeAreaInsets.sub(apply));
+          safe(() => viewport.contentSafeAreaInsets.sub(apply));
+        },
+
+        folderOf(s) {
+          return s.folder || TOPIC_FOLDER[s.topic] || "Общество";
+        },
+        get visible() {
+          const s = this.stories;
+          if (this.searching || this.activeFilter === "all") return s;
+          if (this.activeFilter === "hot") return s.filter((x) => x.priority === "high");
+          return s.filter((x) => this.folderOf(x) === this.activeFilter);
+        },
+        get groupedFeed() {
+          const groups = {};
+          for (const s of this.visible) (groups[this.folderOf(s)] ??= []).push(s);
+          return Object.entries(groups)
+            .map(([folder, items]) => ({
+              folder,
+              total: items.length,
+              items: this.expandedFolders[folder] ? items : items.slice(0, 5),
+            }))
+            .sort((a, b) => {
+              const d = FOLDER_ORDER.indexOf(a.folder) - FOLDER_ORDER.indexOf(b.folder);
+              return d !== 0 ? d : b.total - a.total;
+            });
+        },
+        expandFolder(f) {
+          this.expandedFolders = { ...this.expandedFolders, [f]: true };
+          haptic.select();
+        },
+        get verifiedCount() {
+          return this.visible.filter((x) => x.tier === "verified").length;
+        },
+        get syncLabel() {
+          if (!this.lastSync) return "—";
+          const m = Math.floor((this.now - this.lastSync) / 60000);
+          return m < 1 ? "сейчас" : `${m} мин`;
+        },
+
+        cardSummary: (s) => s.summary_ai || s.summary || "",
+        cardTags(s) {
+          const t = Array.isArray(s.tags) && s.tags.length ? s.tags : [(s.topic || "").toLowerCase()];
+          return t.filter(Boolean).slice(0, 3);
+        },
+        tierDot: (t) => (t === "verified" ? "bg-verify" : t === "developing" ? "bg-develop" : "bg-faint"),
+        quickWatch(t) {
+          this.addWatch(t);
+          this.showToast(`Отслеживаю «${t}»`);
+        },
+
+        countFor(key) {
+          const s = this.stories;
+          if (key === "all") return s.length;
+          if (key === "hot") return s.filter((x) => x.priority === "high").length;
+          return s.filter((x) => this.folderOf(x) === key).length;
+        },
+
+        dedup(rows) {
+          const seen = new Set();
+          const out = [];
+          for (const r of rows) {
+            const k = r.title.toLowerCase().replace(/[^a-zа-яё0-9 ]+/gi, " ").replace(/\s+/g, " ").trim().slice(0, 60);
+            if (seen.has(k)) continue;
+            seen.add(k);
+            out.push(r);
+          }
+          return out;
+        },
+
+        mapRow(r) {
+          return { ...r, first_seen: new Date(r.first_seen).getTime(), last_seen: new Date(r.last_seen).getTime() };
+        },
+
+        async load(silent = false) {
+          if (this.searching) return;
+          const seq = ++this._seq;
+          if (!silent) { this.loading = true; this.error = false; }
+          try {
+            const { data, error } = await withTimeout(
+              supabase
+                .from("stories")
+                .select("id, title, place, lat, lon, priority, credibility, tier, topic, folder, tags, summary, summary_ai, agency_count, source_count, source_type_count, first_seen, last_seen")
+                .order("last_seen", { ascending: false })
+                .limit(CONFIG.FEED_LIMIT),
+              12000,
+            );
+            if (error) throw error;
+            const rows = this.dedup(data.map((r) => this.mapRow(r)));
+            if (seq !== this._seq) return;
+            if (silent && this._seen.size) {
+              const fresh = rows.filter((r) => !this._seen.has(r.id)).length;
+              if (fresh > 0) this.showToast(`${fresh} ${EVENT_WORDS[PR.select(fresh)]}`);
+            }
+            this.stories = rows;
+            this._seen = new Set(rows.map((r) => r.id));
+            this.lastSync = Date.now();
+            this.error = false;
+          } catch (e) {
+            log(e);
+            if (seq !== this._seq) return;
+            if (!silent) this.error = true;
+          } finally {
+            if (seq === this._seq) this.loading = false;
+          }
+        },
+
+        async runSearch() {
+          const q = this.query.trim();
+          if (!q) return this.clearSearch();
+          this.searching = true;
+          this.activeFilter = "all";
+          const seq = ++this._seq;
+          this.loading = true;
+          this.error = false;
+          try {
+            const { data, error } = await withTimeout(
+              supabase
+                .from("stories")
+                .select("id, title, place, lat, lon, priority, credibility, tier, topic, folder, tags, summary, summary_ai, agency_count, source_count, source_type_count, first_seen, last_seen")
+                .textSearch("fts", q, { type: "websearch", config: "russian" })
+                .order("last_seen", { ascending: false })
+                .limit(CONFIG.FEED_LIMIT),
+              12000,
+            );
+            if (error) throw error;
+            if (seq !== this._seq) return;
+            this.stories = this.dedup(data.map((r) => this.mapRow(r)));
+          } catch (e) {
+            log(e);
+            if (seq === this._seq) this.error = true;
+          } finally {
+            if (seq === this._seq) this.loading = false;
+          }
+        },
+
+        clearSearch() {
+          this.query = "";
+          this.searching = false;
+          haptic.select();
+          this.load();
+        },
+
+        async loadMembers(story) {
+          this.membersLoading = true;
+          this.members = [];
+          try {
+            const { data, error } = await withTimeout(
+              supabase
+                .from("posts")
+                .select("id, source_type, source_name, title, body, url, published_at")
+                .eq("story_id", story.id)
+                .order("published_at", { ascending: true }),
+              10000,
+            );
+            if (error) throw error;
+            this.members = data.map((m) => ({ ...m, body: m.body ? m.body.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() : null, published_at: new Date(m.published_at).getTime() }));
+          } catch (e) {
+            log(e);
+          } finally {
+            this.membersLoading = false;
+          }
+        },
+
+        get chronology() {
+          return this.members;
+        },
+        get lead() {
+          const cand = (this.detail?.summary_ai || this.detail?.summary || "").trim() ||
+            this.members.map((m) => (m.body || "").trim()).filter((b) => b.length > 40).sort((a, b) => b.length - a.length)[0];
+          if (!cand) return "";
+          let t = cand.replace(/\s+/g, " ").replace(/(Читайте|Подробнее|Подписывайтесь|Фото:|Видео:).*$/i, "").trim();
+          if (t.length > 320) {
+            const cut = t.slice(0, 320);
+            const stop = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("! "), cut.lastIndexOf("? "));
+            t = stop > 170 ? cut.slice(0, stop + 1) : cut.trim() + "…";
+          }
+          return t;
+        },
+
+        mountGlobe() {
+          const el = this.$refs.globe;
+          const globe = Globe()(el)
+            .width(el.clientWidth)
+            .height(el.clientHeight)
+            .backgroundColor("rgba(0,0,0,0)")
+            .globeImageUrl("https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-dark.jpg")
+            .showGraticules(true)
+            .atmosphereColor("#3a7bd5")
+            .atmosphereAltitude(0.18)
+            .pointAltitude((d) => 0.008 + (d.credibility / 100) * 0.02)
+            .pointRadius((d) => 0.32 + (d.credibility / 100) * 0.5)
+            .pointColor((d) =>
+              d.tier === "verified" ? "#34d399" : d.tier === "developing" ? "#ff9f0a" : "#8a8a90",
+            )
+            .ringColor((d) => {
+              const c = d.tier === "verified" ? "52,211,153" : "255,159,10";
+              return (t) => `rgba(${c},${1 - t})`;
+            })
+            .ringMaxRadius((d) => (d.priority === "high" ? 5 : 3.2))
+            .ringPropagationSpeed((d) => (d.priority === "high" ? 2 : 1.2))
+            .ringRepeatPeriod((d) => (d.priority === "high" ? 1100 : 2200))
+            .htmlLat((d) => d.lat)
+            .htmlLng((d) => d.lng)
+            .htmlAltitude(0.012)
+            .htmlElement((d) => {
+              const wrap = document.createElement("div");
+              wrap.style.pointerEvents = "none";
+              const pill = document.createElement("button");
+              pill.className = "glabel";
+              pill.setAttribute("data-t", d.tier);
+              pill.textContent = d.text;
+              pill.onclick = () => {
+                const s = this.stories.find((x) => x.id === d.id);
+                if (s) this.open(s);
+              };
+              wrap.appendChild(pill);
+              return wrap;
+            })
+            .arcColor(() => ["rgba(255,69,58,0.05)", "rgba(255,69,58,0.75)"])
+            .arcStroke(0.4)
+            .arcDashLength(0.5)
+            .arcDashGap(0.25)
+            .arcDashAnimateTime(2200)
+            .arcAltitudeAutoScale(0.4)
+            .onPointClick((d) => {
+              const s = this.stories.find((x) => x.id === d.id);
+              if (s) this.open(s);
+            });
+          const c = globe.controls();
+          c.autoRotate = true;
+          c.autoRotateSpeed = 0.4;
+          c.enableZoom = true;
+          c.enablePan = false;
+          c.minDistance = 180;
+          c.maxDistance = 420;
+          globe.pointOfView({ lat: 30, lng: 60, altitude: 2.4 }, 0);
+          this._globe = globe;
+          this.globeReady = true;
+          this.paintGlobe();
+          this.$nextTick(() => this.focusNewestHot());
+          this._ro = new ResizeObserver(() => globe.width(el.clientWidth).height(el.clientHeight));
+          this._ro.observe(el);
+        },
+
+        paintGlobe() {
+          if (!this._globe) return;
+          if (this.entityFocus) {
+            const pts = this.entityFocus.pts;
+            this._globe.pointsData(pts);
+            this._globe.ringsData(pts);
+            this._globe.htmlElementsData([]);
+            const arcs = [];
+            for (let i = 0; i < pts.length - 1; i++)
+              arcs.push({ startLat: pts[i].lat, startLng: pts[i].lng, endLat: pts[i + 1].lat, endLng: pts[i + 1].lng });
+            this._globe.arcsData(arcs);
+            return;
+          }
+          const geo = this.visible.filter((s) => s.lat != null);
+          const pts = geo.map((s) => ({
+            id: s.id, lat: s.lat, lng: s.lon, tier: s.tier, credibility: s.credibility, priority: s.priority,
+          }));
+          this._globe.pointsData(pts);
+          this._globe.ringsData(pts.filter((s) => s.tier === "verified" || s.priority === "high"));
+
+          const labels = [...geo]
+            .sort((a, b) => b.credibility - a.credibility)
+            .slice(0, 5)
+            .map((s) => ({ id: s.id, lat: s.lat, lng: s.lon, tier: s.tier, text: s.place ? s.place.split(",")[0] : "" }))
+            .filter((l) => l.text);
+          this._globe.htmlElementsData(labels);
+
+          const hot = geo.filter((s) => s.priority === "high").slice(0, 6);
+          const arcs = [];
+          for (let i = 0; i < hot.length - 1; i++)
+            arcs.push({ startLat: hot[i].lat, startLng: hot[i].lon, endLat: hot[i + 1].lat, endLng: hot[i + 1].lon });
+          this._globe.arcsData(arcs);
+        },
+
+        focusNewestHot() {
+          const hot = this.visible.find((s) => s.priority === "high" && s.lat != null);
+          const target = hot ?? this.visible.find((s) => s.lat != null);
+          if (!target || !this._globe) return;
+          this._globe.controls().autoRotate = false;
+          this._globe.pointOfView({ lat: target.lat, lng: target.lon, altitude: 1.7 }, 1400);
+          clearTimeout(this._focusTimer);
+          this._focusTimer = setTimeout(() => {
+            if (this._globe && !this.detail) this._globe.controls().autoRotate = true;
+          }, 5200);
+        },
+
+        flyTo(s) {
+          if (!this._globe || s.lat == null) return;
+          clearTimeout(this._focusTimer);
+          this._globe.controls().autoRotate = false;
+          this._globe.pointOfView({ lat: s.lat, lng: s.lon, altitude: 1.5 }, 800);
+        },
+
+        setFilter(key) {
+          if (this.searching) this.clearSearch();
+          this.activeFilter = key;
+          this.expandedFolders = {};
+          haptic.select();
+          this.$refs.feed.scrollTo({ top: 0, behavior: reducedMotion() ? "auto" : "smooth" });
+        },
+
+        async setView(v) {
+          if (this.view === v) return;
+          this.view = v;
+          haptic.select();
+          if (v === "graph" && !this._fg) {
+            this.graphLoading = true;
+            await this.loadGraph();
+            this.$nextTick(() => {
+              this.mountGraph();
+              this.graphLoading = false;
+            });
+          }
+        },
+
+        async loadGraph() {
+          try {
+            const { data, error } = await withTimeout(supabase.rpc("entity_graph", { top_n: 44, days: 7 }), 12000);
+            if (error) throw error;
+            this.graph = { nodes: data?.nodes ?? [], links: data?.links ?? [] };
+          } catch (e) {
+            log(e);
+            this.graph = { nodes: [], links: [] };
+          }
+        },
+
+        mountGraph() {
+          const el = this.$refs.graph;
+          if (!el || !this.graph.nodes.length) return;
+          const fg = ForceGraph()(el)
+            .backgroundColor("rgba(0,0,0,0)")
+            .width(el.clientWidth)
+            .height(el.clientHeight)
+            .graphData(this.graph)
+            .nodeId("id")
+            .nodeVal("val")
+            .linkColor(() => "rgba(255,255,255,0.1)")
+            .linkWidth((l) => Math.min(l.weight, 8) * 0.4)
+            .warmupTicks(50)
+            .cooldownTime(4000)
+            .onNodeClick((n) => this.openEntity(n.id))
+            .nodeCanvasObject((node, ctx, scale) => {
+              const r = 2 + Math.sqrt(node.val) * 0.7;
+              ctx.beginPath();
+              ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
+              ctx.fillStyle = KIND_COLOR[node.kind] ?? "#8a8a90";
+              ctx.fill();
+              if (node.val >= 6 || scale > 2) {
+                const fs = 11 / scale;
+                ctx.font = `700 ${fs}px ui-rounded, system-ui, sans-serif`;
+                ctx.fillStyle = "rgba(245,245,247,0.9)";
+                ctx.textBaseline = "middle";
+                ctx.fillText(node.name, node.x + r + 2 / scale, node.y);
+              }
+            })
+            .nodePointerAreaPaint((node, color, ctx) => {
+              const r = 2 + Math.sqrt(node.val) * 0.7 + 4;
+              ctx.beginPath();
+              ctx.arc(node.x, node.y, r, 0, 2 * Math.PI);
+              ctx.fillStyle = color;
+              ctx.fill();
+            });
+          this._fg = fg;
+          setTimeout(() => safe(() => fg.zoomToFit(600, 36)), 400);
+          this._fgRo = new ResizeObserver(() => fg.width(el.clientWidth).height(el.clientHeight));
+          this._fgRo.observe(el);
+        },
+
+        async openEntity(id) {
+          haptic.impact("light");
+          try {
+            const { data, error } = await withTimeout(supabase.rpc("entity_dossier", { e_id: id }), 10000);
+            if (error) throw error;
+            if (!data?.entity) return;
+            this.entity = data;
+          } catch (e) {
+            log(e);
+            return;
+          }
+          const d = this.$refs.ent;
+          if (!d.open) safe(() => d.showModal());
+          void d.offsetWidth;
+          d.classList.add("dialog-shown");
+          safe(() => backButton.show.isAvailable() && backButton.show());
+        },
+
+        closeEntity() {
+          const d = this.$refs.ent;
+          d.classList.remove("dialog-shown");
+          clearTimeout(d._t);
+          d._t = setTimeout(() => d.open && safe(() => d.close()), 480);
+          if (!this.$refs.sheet?.open) safe(() => backButton.hide.isAvailable() && backButton.hide());
+        },
+
+        onEntClose() {
+          this.$refs.ent.classList.remove("dialog-shown");
+          this.entity = null;
+        },
+
+        async openFromEntity(s) {
+          const d = this.$refs.ent;
+          d.classList.remove("dialog-shown");
+          safe(() => d.open && d.close());
+          this.entity = null;
+          const full = this.stories.find((x) => x.id === s.id) || (await this.fetchStory(s.id));
+          if (full) this.open(full);
+        },
+
+        async fetchStory(id) {
+          try {
+            const { data } = await supabase
+              .from("stories")
+              .select("id, title, place, lat, lon, priority, credibility, tier, topic, folder, tags, summary, summary_ai, agency_count, source_count, source_type_count, first_seen, last_seen")
+              .eq("id", id)
+              .single();
+            return data ? this.mapRow(data) : null;
+          } catch {
+            return null;
+          }
+        },
+
+        closeTop() {
+          if (this.$refs.watch?.open) this.closeWatch();
+          else if (this.$refs.ent?.open) this.closeEntity();
+          else if (this.$refs.sheet?.open) this.close();
+        },
+
+        kindLabel: (k) => KIND_LABEL[k] ?? k,
+        kindColor: (k) => KIND_COLOR[k] ?? "#8a8a90",
+        kindStyle(k) {
+          const c = KIND_COLOR[k] ?? "#8a8a90";
+          return `color:${c};background:${c}22`;
+        },
+
+        get entHasGeo() {
+          return (this.entity?.stories ?? []).some((s) => s.lat != null);
+        },
+        get entMax() {
+          return Math.max(1, ...(this.entity?.timeline ?? []).map((t) => t.n));
+        },
+        barH(n) {
+          return Math.max(6, Math.round((n / this.entMax) * 100));
+        },
+
+        focusEntity() {
+          const e = this.entity;
+          if (!e) return;
+          const pts = (e.stories ?? [])
+            .filter((s) => s.lat != null)
+            .map((s) => ({ id: s.id, lat: s.lat, lng: s.lon, tier: s.tier, credibility: s.credibility, priority: s.priority }));
+          if (!pts.length) return;
+          const name = e.entity.name;
+          const d = this.$refs.ent;
+          d.classList.remove("dialog-shown");
+          safe(() => d.open && d.close());
+          this.entity = null;
+          this.view = "feed";
+          this.entityFocus = { name, pts };
+          this.paintGlobe();
+          const lat = pts.reduce((a, p) => a + p.lat, 0) / pts.length;
+          const lng = pts.reduce((a, p) => a + p.lng, 0) / pts.length;
+          if (this._globe) {
+            this._globe.controls().autoRotate = false;
+            this._globe.pointOfView({ lat, lng, altitude: 1.8 }, 900);
+          }
+          haptic.select();
+        },
+
+        clearFocus() {
+          this.entityFocus = null;
+          this.paintGlobe();
+          if (this._globe) this._globe.controls().autoRotate = true;
+          haptic.select();
+        },
+
+        async loadWatch() {
+          try {
+            if (!cloudStorage.getItem.isAvailable()) return;
+            const raw = await cloudStorage.getItem("orbita_watch");
+            this.watch = raw ? JSON.parse(raw) : [];
+          } catch (e) {
+            log(e);
+          }
+        },
+        saveWatch() {
+          safe(() => cloudStorage.setItem.isAvailable() && cloudStorage.setItem("orbita_watch", JSON.stringify(this.watch)));
+        },
+        addWatch(term) {
+          const t = String(term ?? "").trim().toLowerCase();
+          if (!t || this.watch.includes(t)) return;
+          this.watch = [...this.watch, t];
+          this.saveWatch();
+          haptic.impact("light");
+        },
+        addWatchInput() {
+          if (!this.watchInput.trim()) return;
+          this.addWatch(this.watchInput);
+          this.watchInput = "";
+        },
+        removeWatch(t) {
+          this.watch = this.watch.filter((x) => x !== t);
+          this.saveWatch();
+          haptic.select();
+        },
+        isWatched(term) {
+          return this.watch.includes(String(term ?? "").trim().toLowerCase());
+        },
+        matchesWatch(s) {
+          if (!this.watch.length) return false;
+          const hay = `${s.title} ${s.summary ?? ""} ${s.place ?? ""} ${s.topic ?? ""}`.toLowerCase();
+          return this.watch.some((t) => hay.includes(t));
+        },
+        get watchMatches() {
+          return this.stories.filter((s) => this.matchesWatch(s));
+        },
+
+        openWatch() {
+          this.watchAlerts = 0;
+          haptic.impact("light");
+          const d = this.$refs.watch;
+          if (!d.open) safe(() => d.showModal());
+          void d.offsetWidth;
+          d.classList.add("dialog-shown");
+          safe(() => backButton.show.isAvailable() && backButton.show());
+        },
+        closeWatch() {
+          const d = this.$refs.watch;
+          d.classList.remove("dialog-shown");
+          clearTimeout(d._t);
+          d._t = setTimeout(() => d.open && safe(() => d.close()), 480);
+          if (!this.$refs.sheet?.open && !this.$refs.ent?.open) safe(() => backButton.hide.isAvailable() && backButton.hide());
+        },
+        onWatchClose() {
+          this.$refs.watch.classList.remove("dialog-shown");
+        },
+        openFromWatch(s) {
+          const d = this.$refs.watch;
+          d.classList.remove("dialog-shown");
+          safe(() => d.open && d.close());
+          this.open(s);
+        },
+
+        open(s) {
+          this.detail = s;
+          this.loadMembers(s);
+          this.flyTo(s);
+          haptic.impact("light");
+          const d = this.$refs.sheet;
+          if (!d.open) safe(() => d.showModal());
+          void d.offsetWidth;
+          d.classList.add("dialog-shown");
+          safe(() => backButton.show.isAvailable() && backButton.show());
+        },
+
+        close() {
+          const d = this.$refs.sheet;
+          d.classList.remove("dialog-shown");
+          clearTimeout(d._t);
+          d._t = setTimeout(() => d.open && safe(() => d.close()), 480);
+          safe(() => backButton.hide.isAvailable() && backButton.hide());
+        },
+
+        onSheetClose() {
+          this.$refs.sheet.classList.remove("dialog-shown");
+          this.detail = null;
+          this.members = [];
+          if (this._globe) this._globe.controls().autoRotate = true;
+        },
+
+        showToast(text) {
+          this.toast = { show: true, text };
+          clearTimeout(this._toastTimer);
+          this._toastTimer = setTimeout(() => (this.toast.show = false), 4500);
+        },
+        applyToast() {
+          this.toast.show = false;
+          haptic.select();
+          this.$refs.feed.scrollTo({ top: 0, behavior: reducedMotion() ? "auto" : "smooth" });
+        },
+
+        openUrl(url) {
+          if (!url) return;
+          haptic.impact("light");
+          if (/^https:\/\/t\.me\//i.test(url)) openTelegramLink(url);
+          else openLink(url);
+        },
+
+        tierLabel: (t) => TIER_LABEL[t] ?? TIER_LABEL.single,
+        tierTextClass: (t) =>
+          t === "verified" ? "text-verify" : t === "developing" ? "text-develop" : "text-faint",
+        srcColor: (t) => SRC_COLOR[t] ?? "",
+        srcDot: (t) => `background:${SRC_DOT[t] ?? "#8a8a90"}`,
+
+        verdict(s) {
+          return s.tier === "verified" ? "Подтверждено" : s.tier === "developing" ? "Проверяется" : "Не подтверждено";
+        },
+
+        span(s) {
+          const dur = s.last_seen - s.first_seen;
+          if (dur < 120000) return DT.format(s.first_seen);
+          const h = Math.floor(dur / 3600000);
+          const m = Math.floor((dur % 3600000) / 60000);
+          const len = h > 0 ? `${h} ч ${m} мин` : `${m} мин`;
+          return `развитие ${len}`;
+        },
+
+        stamp(ts) {
+          return DT.format(ts);
+        },
+
+        ago(ts) {
+          const d = this.now - ts;
+          if (d < 60000) return "сейчас";
+          if (d < 3600000) return `${Math.floor(d / 60000)} мин`;
+          if (d < 86400000) return `${Math.floor(d / 3600000)} ч`;
+          return `${Math.floor(d / 86400000)} д`;
+        },
+      }));
+
+      queueMicrotask(() => Alpine.start());
+    </script>
+  </body>
+</html>
