@@ -1,0 +1,1801 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content"
+    />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+
+    <link rel="preconnect" href="https://esm.sh" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="preconnect" href="https://wwpuvfzegvpgcapeoyha.supabase.co" crossorigin />
+    <link rel="preconnect" href="https://api.openai.com" crossorigin />
+    <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js" />
+    <link rel="preload" as="fetch" href="/sythera.vrm" crossorigin="anonymous" />
+
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        overscroll-behavior: none;
+        background: #000;
+        color: #f7f7f8;
+        color-scheme: dark;
+        font-family: system-ui, sans-serif;
+        font-size: clamp(0.875rem, 3.6vw, 1rem);
+        -webkit-font-smoothing: antialiased;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+      }
+
+      canvas {
+        position: fixed;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        touch-action: none;
+      }
+
+      audio {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        clip-path: inset(50%);
+      }
+
+      [x-cloak] {
+        display: none !important;
+      }
+
+      .hud {
+        position: fixed;
+        inset-block-start: calc(var(--tg-safe-area-inset-top, 0px) + 0.75rem);
+        inset-inline-end: calc(var(--tg-safe-area-inset-right, 0px) + 1rem);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding-block: 0.4375rem;
+        padding-inline: 0.6875rem 0.8125rem;
+        border-radius: 999px;
+        border: 1px solid #ffffff0f;
+        background: #0f0f12b8;
+        backdrop-filter: blur(16px) saturate(1.4);
+        font-size: 0.8125rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.005em;
+        white-space: nowrap;
+        transition: opacity 0.4s ease;
+      }
+
+      .dot {
+        flex: none;
+        inline-size: 0.4375rem;
+        block-size: 0.4375rem;
+        border-radius: 50%;
+        background: #6b6b76;
+        transition: background 0.4s ease, box-shadow 0.4s ease;
+      }
+
+      .hud[data-state="listening"] .dot {
+        background: #7fd6ff;
+        box-shadow: 0 0 0.5rem #7fd6ff66;
+      }
+
+      .hud[data-state="connecting"] .dot {
+        background: #ffd28a;
+        box-shadow: 0 0 0.5rem #ffd28a66;
+        animation: pulse 1.1s ease-in-out infinite;
+      }
+
+      .hud[data-state="live"] .dot {
+        background: #6ee7a8;
+        box-shadow: 0 0 0.5rem #6ee7a866;
+        animation: pulse 2.4s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        50% {
+          opacity: 0.25;
+        }
+      }
+
+      .caption {
+        position: fixed;
+        inset-block-end: calc(var(--tg-safe-area-inset-bottom, 0px) + 1.75rem);
+        inset-inline: calc(var(--tg-safe-area-inset-left, 0px) + 1.25rem)
+          calc(var(--tg-safe-area-inset-right, 0px) + 1.25rem);
+        margin: 0 auto;
+        max-inline-size: 32rem;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
+        block-size: 4.35em;
+        font-size: 0.9375rem;
+        line-height: 1.45;
+        letter-spacing: 0.003em;
+        text-align: center;
+        text-wrap: pretty;
+        overflow-wrap: anywhere;
+        color: #edeef2;
+        text-shadow: 0 1px 16px #000, 0 0 2px #000a;
+      }
+
+      .toast {
+        position: fixed;
+        inset-block-start: calc(var(--tg-safe-area-inset-top, 0px) + 3.75rem);
+        inset-inline: 1.25rem;
+        margin-inline: auto;
+        max-inline-size: 21rem;
+        padding: 0.6875rem 0.9375rem;
+        border-radius: 0.9375rem;
+        border: 1px solid #ffffff0f;
+        background: #16161ae8;
+        backdrop-filter: blur(16px) saturate(1.4);
+        font-size: 0.8125rem;
+        line-height: 1.4;
+        text-align: center;
+        text-wrap: pretty;
+        overflow-wrap: anywhere;
+      }
+
+      .sheet {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        grid-template-rows: 1fr auto;
+        align-items: center;
+        justify-items: center;
+        gap: 1.5rem;
+        padding: calc(var(--tg-safe-area-inset-top, 0px) + 2rem)
+          calc(var(--tg-safe-area-inset-right, 0px) + 1.5rem)
+          calc(var(--tg-safe-area-inset-bottom, 0px) + 2.25rem)
+          calc(var(--tg-safe-area-inset-left, 0px) + 1.5rem);
+        background: radial-gradient(ellipse 90% 60% at 50% 40%, #00000000, #000000e6 72%);
+        text-align: center;
+      }
+
+      .sheet[data-solid] {
+        background: #000;
+      }
+
+      .sheet:focus-visible {
+        outline: 2px solid #f7f7f8;
+        outline-offset: -4px;
+      }
+
+      .body {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.625rem;
+        min-inline-size: 0;
+        max-inline-size: 22rem;
+        max-block-size: 100%;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: none;
+      }
+
+      .body::-webkit-scrollbar {
+        display: none;
+      }
+
+      .foot {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.25rem;
+        inline-size: 100%;
+        max-inline-size: 22rem;
+      }
+
+      .title {
+        font-size: 1.125rem;
+        font-weight: 640;
+        line-height: 1.3;
+        letter-spacing: -0.015em;
+        text-wrap: balance;
+        overflow-wrap: anywhere;
+      }
+
+      .note {
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: #9b9ba5;
+        text-wrap: pretty;
+        overflow-wrap: anywhere;
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+        inline-size: 100%;
+      }
+
+      .pack,
+      .action {
+        border: 1px solid #ffffff0a;
+        border-radius: 1.125rem;
+        background: #16161a;
+        color: #f7f7f8;
+        font: inherit;
+        font-weight: 640;
+        transition: transform 0.16s ease, background 0.2s ease, opacity 0.2s ease;
+      }
+
+      .pack:disabled,
+      .action:disabled {
+        opacity: 0.4;
+      }
+
+      .pack:active:not(:disabled),
+      .action:active:not(:disabled) {
+        transform: scale(0.965);
+        background: #212127;
+      }
+
+      .pack {
+        flex: 1 1 5.5rem;
+        max-inline-size: 8rem;
+        padding: 0.8125rem 0.5rem;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: -0.005em;
+      }
+
+      .pack small {
+        display: block;
+        margin-block-start: 0.1875rem;
+        color: #9b9ba5;
+        font-size: 0.75rem;
+        font-weight: 400;
+        white-space: nowrap;
+      }
+
+      .action {
+        flex: 0 0 auto;
+        min-block-size: 2.875rem;
+        padding: 0.8125rem 1.75rem;
+        white-space: nowrap;
+      }
+
+      .disclosure {
+        inline-size: 100%;
+        margin-block-start: 0.25rem;
+        text-align: center;
+      }
+
+      .disclosure summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 999px;
+        background: #ffffff08;
+        color: #83838d;
+        font-size: 0.75rem;
+        font-weight: 500;
+        list-style: none;
+        cursor: pointer;
+        transition: background 0.2s ease, color 0.2s ease;
+      }
+
+      .disclosure summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .disclosure summary:active {
+        background: #ffffff12;
+        color: #b6b6bf;
+      }
+
+      .disclosure summary::after {
+        content: "";
+        inline-size: 0.3125rem;
+        block-size: 0.3125rem;
+        border-inline-end: 1.5px solid currentColor;
+        border-block-end: 1.5px solid currentColor;
+        rotate: 45deg;
+        translate: 0 -1px;
+        transition: rotate 0.25s ease, translate 0.25s ease;
+      }
+
+      .disclosure[open] summary::after {
+        rotate: 225deg;
+        translate: 0 1px;
+      }
+
+      .detail {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        justify-content: center;
+        gap: 0.1875rem 0.875rem;
+        inline-size: fit-content;
+        max-inline-size: 100%;
+        margin: 0.875rem auto 0;
+        padding-inline-start: 0.875rem;
+        border-inline-start: 1px solid #26262d;
+        text-align: start;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 0.6875rem;
+        line-height: 1.6;
+        letter-spacing: 0.01em;
+        user-select: text;
+        overflow-wrap: anywhere;
+      }
+
+      .detail dt {
+        color: #4e4e57;
+      }
+
+      .detail dd {
+        margin: 0;
+        color: #8d8d97;
+      }
+
+      .spinner {
+        inline-size: 1.625rem;
+        block-size: 1.625rem;
+        border-radius: 50%;
+        background: conic-gradient(from 0deg, #0000, #f7f7f8);
+        mask: radial-gradient(farthest-side, #0000 calc(100% - 2px), #000 0);
+        animation: spin 0.9s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          rotate: 360deg;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "alpinejs": "https://esm.sh/alpinejs@3.15.12",
+          "@telegram-apps/sdk": "https://esm.sh/@telegram-apps/sdk@3.11.8",
+          "ky": "https://esm.sh/ky@^1",
+          "p-retry": "https://esm.sh/p-retry@^6",
+          "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+          "@pixiv/three-vrm": "https://esm.sh/@pixiv/three-vrm@3.4.4?external=three",
+          "@openai/agents-realtime": "https://esm.sh/@openai/agents-realtime@0.2.1",
+          "postprocessing": "https://esm.sh/postprocessing@6.37.8?external=three",
+          "three-mesh-bvh": "https://esm.sh/three-mesh-bvh@0.9.0?external=three",
+          "simplex-noise": "https://esm.sh/simplex-noise@4.0.3",
+          "maath/easing": "https://esm.sh/maath@0.10.8/easing",
+          "zod": "https://esm.sh/zod@3.25.76"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import Alpine from "alpinejs";
+      import {
+        init as initTelegram,
+        miniApp,
+        viewport,
+        swipeBehavior,
+        closingBehavior,
+        cloudStorage,
+        hapticFeedback,
+        addToHomeScreen,
+        invoice,
+        retrieveLaunchParams,
+        retrieveRawInitData,
+        postEvent,
+      } from "@telegram-apps/sdk";
+      import ky, { HTTPError, TimeoutError } from "ky";
+      import pRetry, { AbortError } from "p-retry";
+      import * as THREE from "three";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+      import { KTX2Loader } from "three/addons/loaders/KTX2Loader.js";
+      import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+      import { VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
+      import {
+        EffectComposer,
+        RenderPass,
+        EffectPass,
+        BloomEffect,
+        ToneMappingEffect,
+        SMAAEffect,
+        VignetteEffect,
+      } from "postprocessing";
+      import {
+        computeBoundsTree,
+        disposeBoundsTree,
+        acceleratedRaycast,
+      } from "three-mesh-bvh";
+      import { createNoise2D } from "simplex-noise";
+      import { damp } from "maath/easing";
+      import {
+        RealtimeAgent,
+        RealtimeSession,
+        OpenAIRealtimeWebRTC,
+        tool,
+      } from "@openai/agents-realtime";
+      import { z } from "zod";
+
+      THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+      THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
+      THREE.Mesh.prototype.raycast = acceleratedRaycast;
+
+      const API = "https://wwpuvfzegvpgcapeoyha.supabase.co/functions/v1/api";
+      const MODEL_URL = "/sythera.vrm";
+      const MODEL_VERSION = "1";
+      const ASSET_CACHE = `sythera-assets-${MODEL_VERSION}`;
+      const AGENT = "sythera";
+
+      const VAD_VERSION = "0.0.29";
+      const ORT_VERSION = "1.22.0";
+      const VAD_CDN = `https://cdn.jsdelivr.net/npm/@ricky0123/vad-web@${VAD_VERSION}/dist/`;
+      const ORT_CDN = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${ORT_VERSION}/dist/`;
+
+      const TIMEOUT_MS = 15000;
+      const TOKEN_SKEW_S = 120;
+      const HEARTBEAT_MS = 30000;
+      const BOOT_RETRIES = 4;
+      const TOAST_MS = 4000;
+      const TOUCH_COOLDOWN_MS = 900;
+      const BLINK_MIN_MS = 2200;
+      const BLINK_MAX_MS = 6200;
+      const BLINK_DUR = 0.12;
+      const DOUBLE_BLINK_CHANCE = 0.22;
+      const BREATH_HZ = 0.22;
+      const SMOOTH_EXPRESSION = 0.16;
+      const SMOOTH_LOOK = 0.25;
+      const SMOOTH_VISEME = 0.05;
+      const VISEME_GAIN = 3.4;
+      const VOICE_FLOOR = 0.06;
+      const SACCADE_MIN_MS = 1400;
+      const SACCADE_MAX_MS = 4200;
+      const PICK_RADIUS_PX = 130;
+      const CAMERA_FOV = 22;
+      const FRAME_TOP = 1.06;
+      const FRAME_BOTTOM = 0.2;
+      const FRAME_PAD = 1.08;
+      const FFT_SIZE = 1024;
+      const CAPTION_MAX = 240;
+      const IDLE_HANGUP_MS = 28000;
+      const HIDDEN_HANGUP_MS = 15000;
+      const STREAM_WAIT_MS = 4000;
+      const HOME_SCREEN_KEY = "hs";
+
+      const MOODS = {
+        neutral: { vrm: "neutral", rim: 0xbba7ff },
+        happy: { vrm: "happy", rim: 0xffe6a3 },
+        relaxed: { vrm: "relaxed", rim: 0xffc2b0 },
+        sad: { vrm: "sad", rim: 0x9fb6ff },
+        angry: { vrm: "angry", rim: 0xff9d8a },
+        surprised: { vrm: "surprised", rim: 0xa5e8ff },
+      };
+
+      const MOOD_KEYS = Object.keys(MOODS);
+      const VISEMES = ["aa", "ih", "ou", "ee", "oh"];
+      const SWAY_BONES = ["hips", "spine", "chest", "head"];
+
+      const GESTURES = {
+        wave: 1.4,
+        nod: 0.9,
+        shake: 0.9,
+        shrug: 1.1,
+        point: 1.2,
+        lean_in: 1.6,
+        think: 2.0,
+      };
+
+      const GESTURE_KEYS = Object.keys(GESTURES);
+
+      const PACKS = [
+        { id: "voice_900", stars: 99, label: "15 мин" },
+        { id: "voice_3600", stars: 349, label: "60 мин" },
+        { id: "voice_10800", stars: 899, label: "180 мин" },
+      ];
+
+      const PHASES = {
+        scene: "Загружаю аватар",
+        auth: "Проверяю доступ",
+        graphics: "Перезапускаю графику",
+      };
+
+      const MESSAGES = {
+        unauthorized: "Telegram не подтвердил вход",
+        banned: "Доступ закрыт",
+        no_companion: "Компаньон не найден",
+        no_balance: "Голосовое время закончилось",
+        rate_limited: "Слишком много попыток",
+        mint_failed: "Голосовой сервис недоступен",
+        timeout: "Сервер не ответил",
+        network: "Сеть недоступна",
+        offline: "Нет соединения",
+        model: "Не удалось загрузить аватар",
+        graphics: "Графика недоступна",
+        mic: "Микрофон недоступен",
+        realtime: "Связь не установилась",
+        invoice: "Счёт не открылся",
+        internal: "Ошибка на сервере",
+      };
+
+      const REST_ARMS = {
+        leftShoulder: [0, 0, -0.04],
+        rightShoulder: [0, 0, 0.04],
+        leftUpperArm: [0, -0.08, -1.15],
+        rightUpperArm: [0, 0.08, 1.15],
+        leftLowerArm: [0, -0.22, 0],
+        rightLowerArm: [0, 0.22, 0],
+        leftHand: [0, 0, -0.06],
+        rightHand: [0, 0, 0.06],
+      };
+
+      const REGIONS = {
+        head: { bone: "head", haptic: "light" },
+        chest: { bone: "chest", haptic: "soft" },
+        rightHand: { bone: "rightHand", haptic: "light" },
+        leftHand: { bone: "leftHand", haptic: "light" },
+      };
+
+      const safe = (fn) => {
+        try {
+          const r = fn();
+          return r instanceof Promise ? r.catch(() => undefined) : r;
+        } catch {
+          return undefined;
+        }
+      };
+
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+      const rand = (lo, hi) => lo + Math.random() * (hi - lo);
+
+      const compose = (...slices) => {
+        const target = {};
+        for (const slice of slices)
+          Object.defineProperties(target, Object.getOwnPropertyDescriptors(slice));
+        return target;
+      };
+
+      const haptic = {
+        impact: (style) => safe(() => hapticFeedback.impactOccurred(style)),
+        notify: (type) => safe(() => hapticFeedback.notificationOccurred(type)),
+      };
+
+      class Fault extends Error {
+        constructor(code, status = 0) {
+          super(code);
+          this.name = "Fault";
+          this.code = code;
+          this.status = status;
+        }
+      }
+
+      const faultOf = (e) => {
+        if (e instanceof Fault) return e;
+        if (e instanceof HTTPError)
+          return new Fault(e.code ?? "internal", e.response.status);
+        if (e instanceof TimeoutError) return new Fault("timeout");
+        if (e?.name === "NotAllowedError" || e?.name === "SecurityError")
+          return new Fault("denied");
+        return new Fault(navigator.onLine ? "network" : "offline");
+      };
+
+      const store = Alpine.reactive({ mood: "neutral", seconds: 0 });
+
+      const noise2D = createNoise2D();
+
+      const gl = {
+        renderer: null,
+        composer: null,
+        scene: null,
+        camera: null,
+        clock: null,
+        vrm: null,
+        look: null,
+        rim: null,
+        raycaster: null,
+        meshes: [],
+        raf: 0,
+        blinkAt: 0,
+        blinkPhase: -1,
+        blinkQueue: 0,
+        weights: {},
+        target: {},
+        visemes: {},
+        rest: new Map(),
+        pointer: { x: 0, y: 0, active: false },
+        aim: { x: 0, y: 0 },
+        gaze: { x: 0, y: 0 },
+        gazeAt: 0,
+        nudge: { x: 0, y: 0, decay: 0 },
+        gesture: null,
+        bones: new Map(),
+        fit: null,
+        headY: 1.35,
+        ready: false,
+        analyser: null,
+        freq: null,
+        wave: null,
+        binHz: 0,
+        energy: { v: 0 },
+        voiceAt: 0,
+      };
+
+      const audio = { ctx: null, node: null };
+
+      const audioContext = () => (audio.ctx ??= new AudioContext());
+
+      const unlockAudio = () => {
+        const ctx = audioContext();
+        if (ctx.state === "suspended") safe(() => ctx.resume());
+      };
+
+      const attachAnalyser = async (el) => {
+        const ctx = audioContext();
+        if (ctx.state === "suspended") await safe(() => ctx.resume());
+
+        if (!gl.analyser) {
+          gl.analyser = ctx.createAnalyser();
+          gl.analyser.fftSize = FFT_SIZE;
+          gl.analyser.smoothingTimeConstant = 0.45;
+          gl.freq = new Uint8Array(gl.analyser.frequencyBinCount);
+          gl.wave = new Uint8Array(gl.analyser.fftSize);
+          gl.binHz = ctx.sampleRate / gl.analyser.fftSize;
+        }
+
+        const deadline = Date.now() + STREAM_WAIT_MS;
+        while (!(el.srcObject instanceof MediaStream) && Date.now() < deadline)
+          await sleep(100);
+        if (!(el.srcObject instanceof MediaStream)) throw new Fault("realtime");
+
+        safe(() => audio.node?.disconnect());
+        audio.node = ctx.createMediaStreamSource(el.srcObject);
+        audio.node.connect(gl.analyser);
+      };
+
+      const detachAnalyser = () => {
+        safe(() => audio.node?.disconnect());
+        audio.node = null;
+        gl.energy.v = 0;
+        for (const v of VISEMES) gl.visemes[v] = 0;
+      };
+
+      const closeAudio = () => {
+        detachAnalyser();
+        safe(() => audio.ctx?.close());
+        audio.ctx = null;
+        gl.analyser = null;
+      };
+
+      const bandEnergy = (lo, hi) => {
+        const a = Math.max(0, Math.floor(lo / gl.binHz));
+        const b = Math.min(gl.freq.length - 1, Math.ceil(hi / gl.binHz));
+        if (b <= a) return 0;
+        let sum = 0;
+        for (let i = a; i <= b; i++) sum += gl.freq[i];
+        return sum / ((b - a + 1) * 255);
+      };
+
+      const readMouth = () => {
+        if (!audio.node) return null;
+
+        gl.analyser.getByteTimeDomainData(gl.wave);
+        let sum = 0;
+        for (let i = 0; i < gl.wave.length; i++) {
+          const v = (gl.wave[i] - 128) / 128;
+          sum += v * v;
+        }
+        const open = clamp(Math.sqrt(sum / gl.wave.length) * VISEME_GAIN, 0, 1);
+        if (open < 0.02) return { open: 0, shape: null };
+
+        gl.analyser.getByteFrequencyData(gl.freq);
+        const f1 = bandEnergy(280, 900);
+        const f2 = bandEnergy(900, 2500);
+        const air = bandEnergy(2500, 4200);
+        const t = clamp((f2 + air * 0.6) / (f1 + f2 + air || 1), 0, 1);
+
+        const shape = {
+          ou: Math.max(0, 1 - t * 3.2),
+          oh: Math.max(0, 1 - Math.abs(t - 0.27) * 4.4),
+          aa: Math.max(0, 1 - Math.abs(t - 0.5) * 3.2),
+          ih: Math.max(0, 1 - Math.abs(t - 0.73) * 4.4),
+          ee: Math.max(0, (t - 0.66) * 3.2),
+        };
+        const norm = VISEMES.reduce((a, k) => a + shape[k], 0) || 1;
+        for (const k of VISEMES) shape[k] = (shape[k] / norm) * open;
+        return { open, shape };
+      };
+
+      const applyMood = (key, intensity = 0.85) => {
+        const mood = MOODS[key] ?? MOODS.neutral;
+        for (const m of MOOD_KEYS)
+          if (MOODS[m].vrm !== "neutral") gl.target[MOODS[m].vrm] = 0;
+        if (mood.vrm !== "neutral") gl.target[mood.vrm] = clamp(intensity, 0, 1);
+        store.mood = key in MOODS ? key : "neutral";
+        gl.rim?.color.setHex(mood.rim);
+      };
+
+      const playGesture = (name) => {
+        gl.gesture = { name, t: 0, dur: GESTURES[name] };
+      };
+
+      const nudgeHead = (x, y) => {
+        gl.nudge.x = clamp(x, -0.4, 0.4);
+        gl.nudge.y = clamp(y, -0.4, 0.4);
+        gl.nudge.decay = 1;
+      };
+
+      const bone = (name) => gl.vrm.humanoid.getNormalizedBoneNode(name);
+
+      const applyRestPose = () => {
+        for (const [name, [x, y, z]] of Object.entries(REST_ARMS))
+          bone(name)?.rotation.set(x, y, z);
+      };
+
+      const measureSubject = (vrm) => {
+        const box = new THREE.Box3().setFromObject(vrm.scene);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const height = size.y || 1.6;
+        const top = box.min.y + height * FRAME_TOP;
+        const bottom = box.min.y + height * FRAME_BOTTOM;
+        const head = vrm.humanoid.getNormalizedBoneNode("head");
+
+        gl.headY = head
+          ? head.getWorldPosition(new THREE.Vector3()).y
+          : box.min.y + height * 0.9;
+        gl.fit = {
+          x: center.x,
+          y: (top + bottom) / 2,
+          z: center.z,
+          spanY: (top - bottom) * FRAME_PAD,
+          spanX: size.x * FRAME_PAD,
+        };
+      };
+
+      const fitCamera = () => {
+        const { fit, camera } = gl;
+        const vFov = (camera.fov * Math.PI) / 180;
+        const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+        const distance = Math.max(
+          fit.spanY / 2 / Math.tan(vFov / 2),
+          fit.spanX / 2 / Math.tan(hFov / 2),
+        );
+        camera.position.set(fit.x, fit.y, fit.z + distance);
+        camera.lookAt(fit.x, fit.y, fit.z);
+        camera.updateProjectionMatrix();
+      };
+
+      const captureRest = () => {
+        gl.rest.clear();
+        for (const name of SWAY_BONES) {
+          const node = bone(name);
+          if (!node) continue;
+          gl.rest.set(name, {
+            rx: node.rotation.x,
+            ry: node.rotation.y,
+            rz: node.rotation.z,
+            py: node.position.y,
+          });
+        }
+      };
+
+      const swayBone = (name, dx, dy, dz, py = 0) => {
+        const node = bone(name);
+        const rest = gl.rest.get(name);
+        if (!node || !rest) return;
+        node.rotation.set(rest.rx + dx, rest.ry + dy, rest.rz + dz);
+        if (py) node.position.y = rest.py + py;
+      };
+
+      const addBone = (name, dx, dy, dz) => {
+        const node = bone(name);
+        if (!node) return;
+        node.rotation.x += dx;
+        node.rotation.y += dy;
+        node.rotation.z += dz;
+      };
+
+      const stepBlink = (now, delta) => {
+        if (gl.blinkPhase < 0 && now >= gl.blinkAt) {
+          gl.blinkPhase = 0;
+          gl.blinkQueue = Math.random() < DOUBLE_BLINK_CHANCE ? 1 : 0;
+          gl.blinkAt = now + rand(BLINK_MIN_MS, BLINK_MAX_MS);
+        }
+        if (gl.blinkPhase < 0) return;
+
+        gl.blinkPhase += delta;
+        const t = gl.blinkPhase / BLINK_DUR;
+        gl.vrm.expressionManager.setValue("blink", t < 1 ? Math.sin(t * Math.PI) : 0);
+        if (t < 1) return;
+
+        if (gl.blinkQueue > 0) {
+          gl.blinkQueue -= 1;
+          gl.blinkPhase = -0.06;
+        } else {
+          gl.blinkPhase = -1;
+        }
+      };
+
+      const stepGaze = (now, delta) => {
+        if (gl.pointer.active) {
+          gl.gaze.x = gl.pointer.x;
+          gl.gaze.y = gl.pointer.y;
+          gl.gazeAt = now + rand(SACCADE_MIN_MS, SACCADE_MAX_MS);
+        } else if (now >= gl.gazeAt) {
+          gl.gazeAt = now + rand(SACCADE_MIN_MS, SACCADE_MAX_MS);
+          const wide = gl.energy.v > VOICE_FLOOR ? 0.14 : 0.32;
+          gl.gaze.x = rand(-wide, wide);
+          gl.gaze.y = rand(-wide * 0.6, wide * 0.5);
+        }
+        damp(gl.aim, "x", gl.gaze.x + noise2D(now / 2600, 0) * 0.035, SMOOTH_LOOK, delta);
+        damp(gl.aim, "y", gl.gaze.y + noise2D(0, now / 3100) * 0.035, SMOOTH_LOOK, delta);
+        gl.look.position.set(gl.aim.x * 0.6, gl.headY + gl.aim.y * 0.4, 1.2);
+      };
+
+      const stepBody = (now, delta) => {
+        const seconds = now / 1000;
+        const breath = Math.sin(seconds * BREATH_HZ * Math.PI * 2);
+        const swayX = noise2D(seconds * 0.09, 11.3);
+        const swayY = noise2D(19.7, seconds * 0.07);
+        const alive = gl.energy.v > VOICE_FLOOR ? 1.35 : 1;
+
+        swayBone("hips", 0, 0, swayX * 0.012, breath * 0.004);
+        swayBone("spine", breath * 0.012, swayY * 0.02, 0);
+        swayBone("chest", breath * 0.022, 0, swayX * 0.016);
+
+        gl.nudge.decay = Math.max(0, gl.nudge.decay - delta * 1.6);
+        swayBone(
+          "head",
+          gl.nudge.y * gl.nudge.decay + breath * 0.01 + swayY * 0.018 * alive,
+          noise2D(seconds * 0.11, 5.1) * 0.03 * alive,
+          gl.nudge.x * gl.nudge.decay + swayX * 0.026 * alive,
+        );
+      };
+
+      const stepGesture = (delta) => {
+        if (!gl.gesture) return;
+        applyRestPose();
+
+        gl.gesture.t += delta;
+        const p = gl.gesture.t / gl.gesture.dur;
+        if (p >= 1) {
+          gl.gesture = null;
+          return;
+        }
+
+        const env = Math.sin(Math.PI * p);
+
+        switch (gl.gesture.name) {
+          case "nod":
+            addBone("head", Math.sin(p * Math.PI * 2) * 0.22, 0, 0);
+            break;
+          case "shake":
+            addBone("head", 0, Math.sin(p * Math.PI * 4) * 0.18, 0);
+            break;
+          case "lean_in":
+            addBone("spine", env * 0.14, 0, 0);
+            break;
+          case "shrug":
+            addBone("leftUpperArm", 0, 0, -env * 0.28);
+            addBone("rightUpperArm", 0, 0, env * 0.28);
+            break;
+          case "wave":
+            addBone("rightUpperArm", 0, 0, env * 0.95);
+            addBone("rightLowerArm", -env * 0.5, Math.sin(p * Math.PI * 6) * 0.45 * env, 0);
+            break;
+          case "point":
+            addBone("rightUpperArm", 0, 0, env * 0.7);
+            addBone("rightLowerArm", 0, env * 0.4, 0);
+            break;
+          case "think":
+            addBone("rightUpperArm", 0, 0, env * 0.55);
+            addBone("rightLowerArm", -env * 1.3, 0, 0);
+            addBone("head", 0, 0, env * 0.09);
+            break;
+        }
+      };
+
+      const stepMouth = (delta) => {
+        const read = readMouth();
+        damp(gl.energy, "v", read?.open ?? 0, SMOOTH_VISEME, delta);
+        for (const v of VISEMES) {
+          damp(gl.visemes, v, read?.shape?.[v] ?? 0, SMOOTH_VISEME, delta);
+          gl.vrm.expressionManager.setValue(v, gl.visemes[v] * 0.9);
+        }
+        if (gl.energy.v > VOICE_FLOOR) gl.voiceAt = Date.now();
+      };
+
+      const tick = () => {
+        gl.raf = requestAnimationFrame(tick);
+
+        const delta = Math.min(0.05, gl.clock.getDelta());
+        const now = performance.now();
+
+        stepBlink(now, delta);
+
+        for (const name of Object.keys(gl.target)) {
+          damp(gl.weights, name, gl.target[name], SMOOTH_EXPRESSION, delta);
+          gl.vrm.expressionManager.setValue(name, gl.weights[name]);
+        }
+
+        stepMouth(delta);
+        stepGaze(now, delta);
+        stepBody(now, delta);
+        stepGesture(delta);
+
+        gl.vrm.update(delta);
+        gl.composer.render(delta);
+      };
+
+      const startLoop = () => {
+        if (gl.raf || !gl.ready) return;
+        gl.clock.getDelta();
+        tick();
+      };
+
+      const stopLoop = () => {
+        cancelAnimationFrame(gl.raf);
+        gl.raf = 0;
+      };
+
+      const cachedBuffer = async (url) => {
+        const cache = await caches.open(ASSET_CACHE);
+        const hit = await cache.match(url);
+        if (hit) return hit.arrayBuffer();
+
+        const res = await fetch(url, { cache: "force-cache" });
+        if (!res.ok) throw new AbortError(new Fault("model", res.status));
+        await cache.put(url, res.clone());
+        return res.arrayBuffer();
+      };
+
+      const sweepCaches = async () => {
+        for (const key of await caches.keys())
+          if (key.startsWith("sythera-assets-") && key !== ASSET_CACHE) await caches.delete(key);
+      };
+
+      const buildStage = async (canvas) => {
+        const renderer = new THREE.WebGLRenderer({
+          canvas,
+          alpha: true,
+          antialias: false,
+          powerPreference: "high-performance",
+          stencil: false,
+        });
+        renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.setClearAlpha(0);
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, 0.1, 20);
+
+        const key = new THREE.DirectionalLight(0xffffff, 2.1);
+        key.position.set(1.2, 2.4, 2.2);
+        const rim = new THREE.DirectionalLight(MOODS.neutral.rim, 1.6);
+        rim.position.set(-1.8, 1.6, -1.4);
+        const fill = new THREE.DirectionalLight(0x7fd6ff, 0.5);
+        fill.position.set(-1.1, 0.4, 2.0);
+        scene.add(key, rim, fill, new THREE.AmbientLight(0xffffff, 0.5));
+
+        const ktx2 = new KTX2Loader()
+          .setTranscoderPath("https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/libs/basis/")
+          .detectSupport(renderer);
+
+        const loader = new GLTFLoader()
+          .setKTX2Loader(ktx2)
+          .setMeshoptDecoder(MeshoptDecoder);
+        loader.register((parser) => new VRMLoaderPlugin(parser));
+
+        let gltf;
+        try {
+          gltf = await loader.parseAsync(await cachedBuffer(MODEL_URL), "/");
+        } catch (e) {
+          throw e instanceof AbortError ? e : new Fault("model");
+        } finally {
+          ktx2.dispose();
+        }
+
+        const vrm = gltf.userData.vrm;
+        if (!vrm?.humanoid || !vrm.expressionManager || !vrm.lookAt)
+          throw new AbortError(new Fault("model"));
+
+        VRMUtils.removeUnnecessaryVertices(gltf.scene);
+        VRMUtils.combineSkeletons(gltf.scene);
+        VRMUtils.combineMorphs(vrm);
+        VRMUtils.rotateVRM0(vrm);
+
+        const meshes = [];
+        vrm.scene.traverse((o) => {
+          o.frustumCulled = false;
+          if (!o.isMesh) return;
+          o.geometry.computeBoundsTree();
+          meshes.push(o);
+        });
+        scene.add(vrm.scene);
+
+        const look = new THREE.Object3D();
+        scene.add(look);
+        vrm.lookAt.target = look;
+
+        const composer = new EffectComposer(renderer, {
+          frameBufferType: THREE.HalfFloatType,
+        });
+        composer.addPass(new RenderPass(scene, camera));
+        composer.addPass(
+          new EffectPass(
+            camera,
+            new BloomEffect({
+              intensity: 1.1,
+              luminanceThreshold: 0.64,
+              luminanceSmoothing: 0.32,
+              mipmapBlur: true,
+              radius: 0.72,
+            }),
+            new VignetteEffect({ darkness: 0.42, offset: 0.34 }),
+            new ToneMappingEffect(),
+            new SMAAEffect(),
+          ),
+        );
+
+        Object.assign(gl, {
+          renderer,
+          composer,
+          scene,
+          camera,
+          vrm,
+          look,
+          rim,
+          meshes,
+          raycaster: new THREE.Raycaster(),
+          clock: new THREE.Clock(),
+          blinkAt: performance.now() + rand(BLINK_MIN_MS, BLINK_MAX_MS),
+          gazeAt: performance.now() + rand(SACCADE_MIN_MS, SACCADE_MAX_MS),
+          weights: {},
+          target: {},
+          visemes: Object.fromEntries(VISEMES.map((v) => [v, 0])),
+          gesture: null,
+          ready: true,
+        });
+
+        applyRestPose();
+        vrm.scene.updateMatrixWorld(true);
+        measureSubject(vrm);
+        look.position.set(0, gl.headY, 1.2);
+        captureRest();
+        applyMood(store.mood);
+
+        gl.bones.clear();
+        for (const [region, spec] of Object.entries(REGIONS)) {
+          const node = bone(spec.bone);
+          if (node) gl.bones.set(region, node);
+        }
+      };
+
+      const resizeStage = (canvas) => {
+        if (!gl.ready) return;
+        const w = canvas.clientWidth || 1;
+        const h = canvas.clientHeight || 1;
+        gl.renderer.setSize(w, h, false);
+        gl.composer.setSize(w, h);
+        gl.camera.aspect = w / h;
+        fitCamera();
+      };
+
+      const pickRegion = (canvas, clientX, clientY) => {
+        if (!gl.ready) return null;
+
+        const rect = canvas.getBoundingClientRect();
+        const px = clientX - rect.left;
+        const py = clientY - rect.top;
+
+        gl.raycaster.setFromCamera(
+          new THREE.Vector2((px / rect.width) * 2 - 1, -(py / rect.height) * 2 + 1),
+          gl.camera,
+        );
+        if (!gl.raycaster.intersectObjects(gl.meshes, false).length) return null;
+
+        const v = new THREE.Vector3();
+        let best = null;
+        let bestDist = PICK_RADIUS_PX;
+        for (const [region, node] of gl.bones) {
+          node.getWorldPosition(v).project(gl.camera);
+          const d = Math.hypot(
+            ((v.x + 1) / 2) * rect.width - px,
+            ((1 - v.y) / 2) * rect.height - py,
+          );
+          if (d < bestDist) {
+            bestDist = d;
+            best = region;
+          }
+        }
+        return best;
+      };
+
+      const disposeStage = () => {
+        stopLoop();
+        detachAnalyser();
+        if (!gl.renderer) return;
+
+        for (const m of gl.meshes) m.geometry.disposeBoundsTree();
+        VRMUtils.deepDispose(gl.vrm.scene);
+        gl.composer.dispose();
+        gl.renderer.dispose();
+
+        Object.assign(gl, {
+          ready: false,
+          renderer: null,
+          composer: null,
+          scene: null,
+          camera: null,
+          vrm: null,
+          look: null,
+          rim: null,
+          fit: null,
+          gesture: null,
+          meshes: [],
+        });
+        gl.rest.clear();
+        gl.bones.clear();
+      };
+
+      const loadScript = (src) =>
+        new Promise((resolve, reject) => {
+          const el = document.createElement("script");
+          el.src = src;
+          el.async = true;
+          el.onload = resolve;
+          el.onerror = () => reject(new Fault("mic"));
+          document.head.append(el);
+        });
+
+      let vadRuntime = null;
+      const ensureVadRuntime = () => {
+        vadRuntime ??= (async () => {
+          await loadScript(`${ORT_CDN}ort.wasm.min.js`);
+          await loadScript(`${VAD_CDN}bundle.min.js`);
+          return globalThis.vad;
+        })().catch((e) => {
+          vadRuntime = null;
+          throw e;
+        });
+        return vadRuntime;
+      };
+
+      const session = { token: "", exp: 0, initData: "" };
+
+      const http = ky.create({
+        prefixUrl: API,
+        timeout: TIMEOUT_MS,
+        retry: {
+          limit: 2,
+          methods: ["post"],
+          statusCodes: [408, 500, 502, 503, 504],
+          backoffLimit: 4000,
+        },
+        credentials: "omit",
+        cache: "no-store",
+        hooks: {
+          beforeError: [
+            async (error) => {
+              const body = await error.response.json().catch(() => null);
+              error.code = body?.error ?? "internal";
+              return error;
+            },
+          ],
+        },
+      });
+
+      const refresh = async () => {
+        const data = await http
+          .post("auth", { headers: { Authorization: `tma ${session.initData}` } })
+          .json();
+        session.token = data.token;
+        session.exp = data.expires_at;
+        store.seconds = data.seconds_balance;
+        return data;
+      };
+
+      const api = http.extend({
+        hooks: {
+          beforeRequest: [
+            async (request) => {
+              if (Date.now() / 1000 > session.exp - TOKEN_SKEW_S) await refresh();
+              request.headers.set("Authorization", `Bearer ${session.token}`);
+            },
+          ],
+        },
+      });
+
+      const lifecycle = () => ({
+        status: "boot",
+        phase: "scene",
+        fault: null,
+        toast: "",
+        _abort: null,
+        _observer: null,
+        _hiddenTimer: null,
+        _toastTimer: null,
+
+        get loadingText() {
+          return PHASES[this.phase];
+        },
+
+        get message() {
+          return MESSAGES[this.fault?.code] ?? MESSAGES.internal;
+        },
+
+        get detail() {
+          if (!this.fault) return [];
+          return [
+            ["code", this.fault.code],
+            ["status", String(this.fault.status)],
+            ["stage", this.phase],
+            ["time", this.fault.at],
+            ["online", String(navigator.onLine)],
+          ];
+        },
+
+        async init() {
+          try {
+            retrieveLaunchParams();
+          } catch {
+            this.status = "outside";
+            return;
+          }
+
+          this._abort = new AbortController();
+          const { signal } = this._abort;
+
+          initTelegram();
+          miniApp.mountSync();
+          miniApp.setHeaderColor("#000000");
+          miniApp.setBackgroundColor("#000000");
+          miniApp.setBottomBarColor("#000000");
+          swipeBehavior.mount();
+          swipeBehavior.disableVertical();
+          closingBehavior.mount();
+          await viewport.mount();
+          viewport.expand();
+          await safe(() => viewport.requestFullscreen());
+          viewport.bindCssVars();
+          safe(() => postEvent("web_app_toggle_orientation_lock", { locked: true }));
+          miniApp.ready();
+          miniApp.isActive.sub(() => this.onActivity());
+
+          session.initData = safe(() => retrieveRawInitData());
+          if (!session.initData) return this.fail(new Fault("unauthorized", 401));
+
+          const canvas = this.$refs.canvas;
+          canvas.addEventListener(
+            "webglcontextlost",
+            (e) => {
+              e.preventDefault();
+              stopLoop();
+              this.phase = "graphics";
+              this.status = "boot";
+            },
+            { signal },
+          );
+          canvas.addEventListener("webglcontextrestored", () => this.boot(), { signal });
+          addEventListener("offline", () => this.hangUp(), { signal });
+          addEventListener("online", () => this.listen(), { signal });
+
+          safe(sweepCaches);
+          await this.boot();
+        },
+
+        async boot() {
+          this.status = "boot";
+          this.fault = null;
+
+          const attempt = (fn) =>
+            pRetry(fn, {
+              retries: BOOT_RETRIES,
+              minTimeout: 1200,
+              factor: 2,
+              onFailedAttempt: (e) => {
+                const { status } = faultOf(e);
+                if (status === 401 || status === 403) throw new AbortError(e);
+              },
+            });
+
+          try {
+            this.phase = "scene";
+            await attempt(() => this.mountStage());
+            this.phase = "auth";
+            await attempt(refresh);
+            this.status = "ready";
+            await this.listen();
+            safe(() => this.offerHomeScreen());
+          } catch (e) {
+            this.fail(e.originalError ?? e);
+          }
+        },
+
+        async offerHomeScreen() {
+          if (!addToHomeScreen.isAvailable()) return;
+          if (!cloudStorage.getItem.isAvailable()) return;
+          if (await cloudStorage.getItem(HOME_SCREEN_KEY)) return;
+          await cloudStorage.setItem(HOME_SCREEN_KEY, "1");
+          addToHomeScreen();
+        },
+
+        fail(error) {
+          const fault = faultOf(error);
+          fault.at = new Date().toISOString().slice(11, 19);
+          this.destroyListener();
+          disposeStage();
+          this.fault = fault;
+          this.status = "error";
+          haptic.notify("error");
+        },
+
+        flash(error) {
+          clearTimeout(this._toastTimer);
+          this.toast = MESSAGES[faultOf(error).code] ?? MESSAGES.internal;
+          this._toastTimer = setTimeout(() => (this.toast = ""), TOAST_MS);
+        },
+
+        async mountStage() {
+          const canvas = this.$refs.canvas;
+          disposeStage();
+          await buildStage(canvas);
+          resizeStage(canvas);
+          this._observer?.disconnect();
+          this._observer = new ResizeObserver(() => resizeStage(canvas));
+          this._observer.observe(canvas);
+          startLoop();
+        },
+
+        onActivity() {
+          const away = document.hidden || !miniApp.isActive();
+          clearTimeout(this._hiddenTimer);
+          if (away) {
+            stopLoop();
+            this._hiddenTimer = setTimeout(() => this.hangUp(), HIDDEN_HANGUP_MS);
+            return;
+          }
+          startLoop();
+          unlockAudio();
+        },
+
+        destroy() {
+          clearTimeout(this._hiddenTimer);
+          clearTimeout(this._toastTimer);
+          this._abort?.abort();
+          this._observer?.disconnect();
+          this.destroyListener();
+          this.hangUp();
+          disposeStage();
+          closeAudio();
+        },
+      });
+
+      const pointer = () => ({
+        _lastTouch: 0,
+
+        onPointerMove(e) {
+          const rect = this.$refs.canvas.getBoundingClientRect();
+          gl.pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          gl.pointer.y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+          gl.pointer.active = true;
+        },
+
+        onPointerLeave() {
+          gl.pointer.active = false;
+        },
+
+        onPointerDown(e) {
+          unlockAudio();
+          if (this.needsMic) return this.listen();
+
+          const region = pickRegion(this.$refs.canvas, e.clientX, e.clientY);
+          if (!region) return;
+
+          const now = performance.now();
+          if (now - this._lastTouch < TOUCH_COOLDOWN_MS) return;
+          this._lastTouch = now;
+
+          haptic.impact(REGIONS[region].haptic);
+          nudgeHead(region === "head" ? 0.14 : -0.08, -0.1);
+          this._rt?.sendMessage(`[touch:${region}]`);
+        },
+      });
+
+      const voice = () => ({
+        live: false,
+        connecting: false,
+        listening: false,
+        needsMic: false,
+        buying: false,
+        caption: "",
+        packs: PACKS,
+        _rt: null,
+        _sessionId: "",
+        _vad: null,
+        _budget: 0,
+        _timer: null,
+        _beat: null,
+        _startedAt: 0,
+        _history: [],
+        _closing: false,
+
+        get state() {
+          if (this.live) return "live";
+          if (this.connecting) return "connecting";
+          return this.listening ? "listening" : "idle";
+        },
+
+        get minutes() {
+          return Math.ceil(store.seconds / 60);
+        },
+
+        get broke() {
+          return this.status === "ready" && store.seconds <= 0 && !this.live;
+        },
+
+        async listen() {
+          if (this.listening || this.live || this.connecting) return;
+          if (this.status !== "ready" || store.seconds <= 0) return;
+
+          try {
+            const vad = await ensureVadRuntime();
+            unlockAudio();
+            this._vad = await vad.MicVAD.new({
+              positiveSpeechThreshold: 0.62,
+              negativeSpeechThreshold: 0.42,
+              redemptionFrames: 8,
+              preSpeechPadFrames: 3,
+              minSpeechFrames: 3,
+              baseAssetPath: VAD_CDN,
+              onnxWASMBasePath: ORT_CDN,
+              onSpeechStart: () => this.dial(),
+            });
+            this._vad.start();
+            this.listening = true;
+            this.needsMic = false;
+          } catch (e) {
+            this.listening = false;
+            this.needsMic = faultOf(e).code === "denied";
+            if (!this.needsMic) this.flash(e);
+          }
+        },
+
+        destroyListener() {
+          const vad = this._vad;
+          this._vad = null;
+          this.listening = false;
+          vad?.destroy();
+        },
+
+        async dial() {
+          if (this.connecting || this.live || store.seconds <= 0) return;
+          this.connecting = true;
+          this.destroyListener();
+
+          try {
+            const grant = await api.post("voice/start").json();
+            this._sessionId = grant.session_id;
+            this._budget = grant.seconds_balance;
+            store.seconds = grant.seconds_balance;
+
+            const el = this.$refs.audio;
+            const transport = new OpenAIRealtimeWebRTC({ audioElement: el });
+            const rt = new RealtimeSession(
+              new RealtimeAgent({ name: AGENT, tools: this.tools() }),
+              { transport },
+            );
+
+            rt.on("history_updated", (history) => this.onHistory(history));
+            rt.on("error", () => this.hangUp());
+            transport.on("connection_change", (state) => {
+              if (state === "disconnected" && this.live) this.hangUp();
+            });
+
+            await rt.connect({ apiKey: grant.client_secret });
+
+            this._rt = rt;
+            this._startedAt = Date.now();
+            this._history = [];
+            gl.voiceAt = Date.now();
+            this.live = true;
+            this.connecting = false;
+            haptic.impact("medium");
+            closingBehavior.enableConfirmation();
+
+            await attachAnalyser(el);
+            this._timer = setInterval(() => this.onSecond(), 1000);
+            this._beat = setInterval(() => this.ping(), HEARTBEAT_MS);
+          } catch (e) {
+            this.connecting = false;
+            const { code } = faultOf(e);
+            if (code === "no_balance") store.seconds = 0;
+            else this.flash(e);
+            await this.hangUp();
+            await this.listen();
+          }
+        },
+
+        async ping() {
+          const res = await safe(() =>
+            api.post("voice/ping", { json: { session_id: this._sessionId } }).json(),
+          );
+          if (res?.ok === false) this.hangUp();
+        },
+
+        onSecond() {
+          const spent = (Date.now() - this._startedAt) / 1000;
+          store.seconds = Math.max(0, this._budget - Math.floor(spent));
+          if (spent >= this._budget || Date.now() - gl.voiceAt > IDLE_HANGUP_MS)
+            this.hangUp();
+        },
+
+        onHistory(history) {
+          this._history = history;
+          gl.voiceAt = Date.now();
+
+          for (let i = history.length - 1; i >= 0; i--) {
+            const item = history[i];
+            if (item.type !== "message" || item.role !== "assistant") continue;
+            const text = this.textOf(item);
+            if (text) this.caption = text.slice(0, CAPTION_MAX);
+            return;
+          }
+        },
+
+        textOf(item) {
+          return item.content
+            .map((p) => p.transcript ?? p.text ?? "")
+            .join(" ")
+            .trim();
+        },
+
+        transcript() {
+          return this._history
+            .filter((i) => i.type === "message" && i.role !== "system")
+            .map((i) => ({ role: i.role, content: this.textOf(i).slice(0, 4000) }))
+            .filter((line) => line.content && !line.content.startsWith("[touch:"))
+            .slice(-400);
+        },
+
+        async hangUp() {
+          if (this._closing || !this._rt) return;
+          this._closing = true;
+
+          clearInterval(this._timer);
+          clearInterval(this._beat);
+
+          const rt = this._rt;
+          const session_id = this._sessionId;
+          const transcript = this.transcript();
+
+          this._rt = null;
+          this._sessionId = "";
+          this._startedAt = 0;
+          this._history = [];
+          this.live = false;
+          this.caption = "";
+
+          detachAnalyser();
+          rt.close();
+          closingBehavior.disableConfirmation();
+          applyMood("neutral");
+          haptic.impact("soft");
+
+          const done = await safe(() =>
+            api.post("voice/finish", { json: { session_id, transcript } }).json(),
+          );
+          if (done) store.seconds = done.seconds_balance;
+
+          this._closing = false;
+          if (!document.hidden) await this.listen();
+        },
+
+        tools() {
+          return [
+            tool({
+              name: "set_mood",
+              description: "Сменить выражение лица аватара при смене эмоционального тона.",
+              parameters: z.object({
+                mood: z.enum(MOOD_KEYS),
+                intensity: z.number().min(0).max(1).nullable(),
+              }),
+              execute: ({ mood, intensity }) => {
+                applyMood(mood, intensity ?? 0.85);
+                return "ok";
+              },
+            }),
+            tool({
+              name: "play_gesture",
+              description: "Проиграть жест аватара.",
+              parameters: z.object({ gesture: z.enum(GESTURE_KEYS) }),
+              execute: ({ gesture }) => {
+                playGesture(gesture);
+                haptic.impact("soft");
+                return "ok";
+              },
+            }),
+            tool({
+              name: "remember",
+              description:
+                "Сохранить долговременный факт о собеседнике. Только устойчивые сведения, не реплики диалога.",
+              parameters: z.object({
+                content: z.string().max(500),
+                kind: z.enum(["fact", "preference", "event"]).nullable(),
+                importance: z.number().int().min(1).max(5).nullable(),
+              }),
+              execute: async ({ content, kind, importance }) => {
+                const res = await safe(() =>
+                  api
+                    .post("voice/remember", {
+                      json: { content, kind: kind ?? "fact", importance: importance ?? 3 },
+                    })
+                    .json(),
+                );
+                return res ? "ok" : "fail";
+              },
+            }),
+            tool({
+              name: "recall",
+              description: "Найти ранее сохранённые факты о собеседнике по смыслу запроса.",
+              parameters: z.object({
+                query: z.string().max(500),
+                limit: z.number().int().min(1).max(10).nullable(),
+              }),
+              execute: async ({ query, limit }) => {
+                const res = await safe(() =>
+                  api.post("voice/recall", { json: { query, limit: limit ?? 5 } }).json(),
+                );
+                if (!res) return "fail";
+                return res.memories.length ? res.memories.join("; ") : "пусто";
+              },
+            }),
+            tool({
+              name: "end_call",
+              description: "Завершить голосовую сессию по просьбе собеседника.",
+              parameters: z.object({}),
+              execute: () => {
+                queueMicrotask(() => this.hangUp());
+                return "ok";
+              },
+            }),
+          ];
+        },
+
+        async buy(plan) {
+          if (this.buying) return;
+          this.buying = true;
+          try {
+            const { link } = await api.post("voice/invoice", { json: { plan } }).json();
+            if (!invoice.open.isAvailable()) throw new Fault("invoice");
+            if ((await invoice.open(link, "url")) !== "paid") return;
+            await refresh();
+            haptic.notify("success");
+            await this.listen();
+          } catch (e) {
+            this.flash(e);
+            haptic.notify("error");
+          } finally {
+            this.buying = false;
+          }
+        },
+      });
+
+      Alpine.data("app", () => compose(lifecycle(), pointer(), voice()));
+      Alpine.start();
+    </script>
+  </head>
+
+  <body x-data="app" @pagehide.window="destroy()" @visibilitychange.document="onActivity()">
+    <canvas
+      x-ref="canvas"
+      @pointermove="onPointerMove($event)"
+      @pointerdown="onPointerDown($event)"
+      @pointerleave="onPointerLeave()"
+      @pointercancel="onPointerLeave()"
+    ></canvas>
+
+    <div class="hud" x-show="status === 'ready'" :data-state="state" x-cloak>
+      <span class="dot"></span>
+      <span x-text="minutes + ' мин'"></span>
+    </div>
+
+    <p class="caption" x-show="live && caption" x-text="caption" x-cloak></p>
+
+    <div class="toast" role="status" x-show="toast" x-text="toast" x-transition.opacity x-cloak></div>
+
+    <div class="sheet" data-solid x-show="status === 'boot'" x-transition.opacity x-cloak>
+      <div class="body">
+        <span class="spinner" role="progressbar"></span>
+        <span class="note" x-text="loadingText"></span>
+      </div>
+    </div>
+
+    <div
+      class="sheet"
+      role="button"
+      tabindex="0"
+      x-show="needsMic"
+      x-cloak
+      @pointerdown="listen()"
+      @keydown.enter.prevent="listen()"
+      @keydown.space.prevent="listen()"
+    >
+      <div class="body">
+        <span class="title">Нужен микрофон</span>
+        <span class="note">Коснитесь экрана и разрешите доступ, чтобы начать разговор</span>
+      </div>
+    </div>
+
+    <div class="sheet" x-show="broke" x-cloak>
+      <div class="body">
+        <span class="title">Голосовое время закончилось</span>
+        <span class="note">Пополните баланс, чтобы продолжить разговор</span>
+      </div>
+      <div class="foot">
+        <div class="row">
+          <template x-for="pack in packs" :key="pack.id">
+            <button type="button" class="pack" :disabled="buying" @click="buy(pack.id)">
+              <span x-text="pack.stars + ' ★'"></span>
+              <small x-text="pack.label"></small>
+            </button>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet" data-solid role="alert" x-show="status === 'outside'" x-cloak>
+      <div class="body">
+        <span class="title">Sythera живёт внутри Telegram</span>
+      </div>
+    </div>
+
+    <div class="sheet" data-solid role="alert" x-show="status === 'error'" x-cloak>
+      <div class="body">
+        <span class="title" x-text="message"></span>
+        <span class="note">Проверьте соединение и попробуйте снова</span>
+        <details class="disclosure">
+          <summary>Подробности</summary>
+          <dl class="detail">
+            <template x-for="[key, value] in detail" :key="key">
+              <div style="display: contents">
+                <dt x-text="key"></dt>
+                <dd x-text="value"></dd>
+              </div>
+            </template>
+          </dl>
+        </details>
+      </div>
+      <div class="foot">
+        <button type="button" class="action" @click="boot()">Повторить</button>
+      </div>
+    </div>
+
+    <audio x-ref="audio" autoplay playsinline></audio>
+  </body>
+</html>
