@@ -11,26 +11,6 @@
     <meta name="color-scheme" content="dark" />
     <title>Sythera</title>
 
-    <script>
-      (() => {
-        const send = (eventType, eventData = {}) => {
-          const proxy = window.TelegramWebviewProxy;
-          if (proxy?.postEvent) return proxy.postEvent(eventType, JSON.stringify(eventData));
-          if (window.external?.notify)
-            return window.external.notify(JSON.stringify({ eventType, eventData }));
-          if (window.parent !== window)
-            window.parent.postMessage(JSON.stringify({ eventType, eventData }), "*");
-        };
-        send("web_app_expand");
-        send("web_app_request_fullscreen");
-        send("web_app_set_background_color", { color: "#000000" });
-        send("web_app_set_header_color", { color: "#000000" });
-        send("web_app_set_bottom_bar_color", { color: "#000000" });
-        send("web_app_setup_swipe_behavior", { allow_vertical_swipe: false });
-        send("web_app_toggle_orientation_lock", { locked: true });
-      })();
-    </script>
-
     <link rel="preconnect" href="https://esm.sh" crossorigin />
     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="preconnect" href="https://wwpuvfzegvpgcapeoyha.supabase.co" crossorigin />
