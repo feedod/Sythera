@@ -2019,7 +2019,7 @@
         infoAt: data.infoAt ?? null,
         ts: data.ts ?? Date.now(),
         history: Array.isArray(data.history) ? data.history : [],
-        ## ...RENDER_FLAGS,
+        ...RENDER_FLAGS,
       });
 
       const sanitizeRecord = (input) => {
