@@ -348,7 +348,7 @@
             font-size: 14px;
             font-weight: 500;
             white-space: nowrap;
-            ## transition:
+            transition:
               background var(--dur) var(--ease),
               color var(--dur) var(--ease);
           }
@@ -429,7 +429,7 @@
             color: var(--on-accent);
             font-size: 17px;
             font-weight: 600;
-            ## transition:
+            transition:
               transform var(--dur-fast) var(--ease),
               opacity var(--dur-fast) var(--ease);
           }
@@ -690,7 +690,7 @@
             block-size: 44px;
             border-radius: 50%;
             color: var(--hint);
-            ## transition:
+            transition:
               background var(--dur-fast) var(--ease),
               transform var(--dur-fast) var(--ease);
           }
@@ -907,7 +907,7 @@
             border-radius: var(--radius);
             background: var(--surface);
             color: var(--accent);
-            ## transition:
+            transition:
               background var(--dur) var(--ease),
               color var(--dur) var(--ease),
               transform var(--dur-fast) var(--ease);
@@ -938,7 +938,7 @@
             padding: 8px 8px 8px 14px;
             border-radius: var(--radius);
             background: var(--surface);
-            ## box-shadow:
+            box-shadow:
               0 1px 2px color-mix(in srgb, #000 8%, transparent),
               0 8px 24px color-mix(in srgb, #000 16%, transparent);
             pointer-events: auto;
@@ -968,7 +968,7 @@
             background: var(--pressed);
           }
           .toast-t {
-            ## transition:
+            transition:
               opacity var(--dur) var(--ease),
               transform var(--dur) var(--ease);
           }
@@ -1074,7 +1074,7 @@
             color: var(--hint);
           }
           .sheet-t {
-            ## transition:
+            transition:
               opacity var(--dur) var(--ease),
               transform 260ms var(--ease);
           }
@@ -2096,7 +2096,7 @@
           category: a.category ?? b.category,
           infoAt: Math.max(a.infoAt ?? 0, b.infoAt ?? 0) || null,
           ts: Math.max(a.ts, b.ts),
-          ## ...RENDER_FLAGS,
+          ...RENDER_FLAGS,
         };
       };
 
@@ -2196,7 +2196,7 @@
             key: `${r.ticketTs}:${r.ts}`,
             date: dayjs(r.ticketTs).format("DD.MM.YY"),
             price: r.price,
-            ## trend:
+            trend:
               prev == null || Number.isNaN(cur) || Number.isNaN(prev)
                 ? null
                 : cur > prev
@@ -3290,7 +3290,7 @@
             "Удалено",
             "ok",
             { label: "Отменить", run: () => this.undoDelete() },
-            ## UNDO_MS,
+            UNDO_MS,
           );
         },
 
