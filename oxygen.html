@@ -1914,7 +1914,7 @@
         "product_name,product_name_ru,brands,categories_tags_ru,categories_tags";
       const EAN_RE = /^(?:\d{8}|\d{13})$/;
       const CEN_RE =
-        /^CEN;(\d{7,8}|\d{12,13});(\d+(?:[.,]\d{1,2})?);\d+;\d+;(\d{2}\.\d{2}\.\d{2})(?:;\d+)?\$/;
+        /^CEN;(\d{7,8}|\d{12,13});(\d+(?:[.,]\d{1,2})?);\d+;\d+;(\d{2}\.\d{2}\.\d{2})(?:;\d+)?$/;
       const TICKET_FORMAT = "DD.MM.YYYY";
       const NO_CATEGORY = "Без категории";
       const REVEAL = 88;
@@ -2613,7 +2613,7 @@
           let list;
           if (q.length < 2) {
             list = base.slice();
-          } else if (/^\d+\$/.test(q)) {
+          } else if (/^\d+$/.test(q)) {
             const exact = [];
             const prefix = [];
             const partial = [];
