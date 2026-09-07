@@ -1315,7 +1315,7 @@
                     x-ref="searchInput"
                     x-model="query"
                     @focus="onSearchFocus()"
-                    @keydown.enter="\$refs.searchInput.blur()"
+                    @keydown.enter="$refs.searchInput.blur()"
                     placeholder="Код, название, категория"
                     inputmode="search"
                     enterkeyhint="done"
@@ -1375,7 +1375,7 @@
           </template>
         </header>
 
-        <section class="content" @pointerdown="onContentTap(\$event)">
+        <section class="content" @pointerdown="onContentTap($event)">
           <template x-if="loading">
             <div>
               <template x-for="i in 2" :key="i">
@@ -1479,7 +1479,7 @@
                     <div
                       class="swipe"
                       :data-id="row.item.id"
-                      x-init="mountCard(\$el, row.item.id)"
+                      x-init="mountCard($el, row.item.id)"
                     >
                       <div class="swipe__bg" aria-hidden="true">
                         <svg
@@ -1630,7 +1630,7 @@
                               <span class="well__error">QR недоступен</span>
                             </template>
                             <canvas
-                              x-init="drawQR(\$el, row.item).then((ok) => { qrErr = !ok })"
+                              x-init="drawQR($el, row.item).then((ok) => { qrErr = !ok })"
                               x-show="!qrErr"
                             ></canvas>
                           </div>
@@ -2835,7 +2835,7 @@
             this.debouncedQuery = val;
           }, 200);
           this.searchDebounced = searchDebounced;
-          this.\$watch("query", (val) => searchDebounced(val));
+          this.$watch("query", (val) => searchDebounced(val));
         },
 
         purchaseAccess() {
@@ -2960,7 +2960,7 @@
           if (document.startViewTransition && !reduceMotion) {
             document.startViewTransition(() => {
               fn();
-              return this.\$nextTick();
+              return this.$nextTick();
             });
           } else {
             fn();
@@ -2992,7 +2992,7 @@
           this.query = "";
           this.debouncedQuery = "";
           this.searchDebounced?.cancel();
-          this.\$refs.searchInput?.focus();
+          this.$refs.searchInput?.focus();
         },
 
         exitSearch() {
@@ -3000,7 +3000,7 @@
           this.debouncedQuery = "";
           this.searchDebounced?.cancel();
           this.searchFocused = false;
-          this.\$refs.searchInput?.blur();
+          this.$refs.searchInput?.blur();
           this.updateBackButton();
         },
 
@@ -3221,7 +3221,7 @@
         },
 
         flash(id) {
-          this.\$nextTick(() => {
+          this.$nextTick(() => {
             const card = document.querySelector(`.card[data-card-id="${cssEscape(id)}"]`);
             if (card) flashCard(card);
           });
