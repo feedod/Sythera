@@ -1144,7 +1144,6 @@
           }
         }
     </style>
-    Код
   </head>
   <body x-data="control">
     <template x-if="!access && !loading">
@@ -2292,7 +2291,7 @@
       const saveLicense = () =>
         cloudAvailable()
           ? csSetItem(
-              ## LICENSE_KEY,
+              LICENSE_KEY,
               JSON.stringify({ version: 1, product: INVOICE_SLUG, paidAt: Date.now() }),
             )
           : Promise.resolve(false);
@@ -2312,7 +2311,7 @@
       const saveSettings = (settings) =>
         cloudAvailable()
           ? csSetItem(
-              ## SETTINGS_KEY,
+              SETTINGS_KEY,
               JSON.stringify({ version: 1, fetchInfo: Boolean(settings.fetchInfo) }),
             )
           : Promise.resolve(false);
