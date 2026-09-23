@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://world.openfoodfacts.org" crossorigin />
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Mono:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;1,14..32,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
     />
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script type="importmap">
@@ -62,53 +62,54 @@
 
       @layer tokens {
         :root {
-          --color-surface: var(--tg-theme-bg-color, #0f1115);
+          --color-surface: var(--tg-theme-bg-color, #07080a);
           --color-surface-container: var(
             --tg-theme-secondary-bg-color,
-            #1a1c20
+            #101111
           );
           --color-surface-container-high: color-mix(
             in srgb,
-            var(--color-surface-container) 94%,
-            #fff 6%
+            var(--color-surface-container) 88%,
+            #fff 12%
           );
-          --color-on-surface: var(--tg-theme-text-color, #f5f6f8);
-          --color-on-surface-variant: var(--tg-theme-hint-color, #98a0ad);
-          --color-primary: var(--tg-theme-button-color, #5288c1);
-          --color-on-primary: var(--tg-theme-button-text-color, #ffffff);
-          --color-error: var(--tg-theme-destructive-text-color, #ec3942);
-          --color-success: #7dd891;
-          --color-warning: #f0b866;
+          --color-on-surface: var(--tg-theme-text-color, #f7f8f8);
+          --color-on-surface-variant: var(--tg-theme-hint-color, #8a8f98);
+          --color-primary: var(--tg-theme-button-color, #8b95ff);
+          --color-on-primary: var(--tg-theme-button-text-color, #0b0c10);
+          --color-error: var(--tg-theme-destructive-text-color, #ff6b6b);
+          --color-success: #5fd68a;
+          --color-warning: #e9d890;
           --color-outline: color-mix(
             in srgb,
-            var(--color-on-surface) 14%,
+            var(--color-on-surface) 10%,
             transparent
           );
           --color-outline-variant: color-mix(
             in srgb,
-            var(--color-on-surface) 7%,
+            var(--color-on-surface) 6%,
             transparent
           );
           --state-pressed: color-mix(
             in srgb,
-            var(--color-on-surface) 12%,
+            var(--color-on-surface) 8%,
             transparent
           );
           --color-stat-codes: var(--color-primary);
           --color-stat-category: var(--color-warning);
-          --color-stat-ean8: var(--color-primary);
+          --color-stat-ean8: #9aa3ff;
           --color-stat-ean13: var(--color-success);
           --radius-xs: 4px;
-          --radius-sm: 8px;
-          --radius-md: 12px;
-          --radius-lg: 16px;
-          --radius-xl: 28px;
+          --radius-sm: 6px;
+          --radius-md: 10px;
+          --radius-lg: 14px;
+          --radius-xl: 20px;
           --radius-full: 9999px;
           --motion-standard: cubic-bezier(0.2, 0, 0, 1);
           --motion-decelerate: cubic-bezier(0, 0, 0, 1);
-          --motion-spring: cubic-bezier(0.175, 0.885, 0.32, 1.1);
-          --font-sans: "Google Sans", system-ui, sans-serif;
-          --font-mono: "Google Sans Mono", ui-monospace, monospace;
+          --motion-spring: cubic-bezier(0.175, 0.885, 0.32, 1.05);
+          --font-sans: "Inter", "SF Pro Text", "SF Pro Display", system-ui,
+            sans-serif;
+          --font-mono: "IBM Plex Mono", "SF Mono", ui-monospace, monospace;
           --safe-top: 0px;
           --safe-bottom: 0px;
           --safe-left: 0px;
@@ -142,6 +143,8 @@
           background: var(--color-surface);
           color: var(--color-on-surface);
           font-family: var(--font-sans);
+          font-feature-settings: "cv01", "ss03", "cv11";
+          letter-spacing: -0.011em;
           -webkit-font-smoothing: antialiased;
           text-rendering: optimizeLegibility;
         }
@@ -188,9 +191,9 @@
           margin-inline: -1rem;
           padding-block-start: var(--header-inset);
           padding-inline: 1rem;
-          background: color-mix(in srgb, var(--color-surface) 78%, transparent);
-          backdrop-filter: blur(20px) saturate(1.4);
-          -webkit-backdrop-filter: blur(20px) saturate(1.4);
+          background: color-mix(in srgb, var(--color-surface) 72%, transparent);
+          backdrop-filter: blur(28px) saturate(1.6);
+          -webkit-backdrop-filter: blur(28px) saturate(1.6);
           border-block-end: 1px solid var(--color-outline-variant);
           transition: padding-block-start 300ms var(--motion-standard);
         }
@@ -199,9 +202,9 @@
           display: flex;
           flex-direction: column;
           align-items: center;
-          padding-block: 1.5rem 1rem;
+          padding-block: 1.15rem 0.75rem;
           overflow: hidden;
-          max-block-size: 200px;
+          max-block-size: 160px;
           opacity: 1;
           transition:
             max-block-size 300ms var(--motion-standard),
@@ -215,18 +218,19 @@
           pointer-events: none;
         }
         .app-header__title {
-          font-size: 1.75rem;
-          font-weight: 700;
-          letter-spacing: -0.02em;
+          font-size: 1.375rem;
+          font-weight: 590;
+          letter-spacing: -0.04em;
           line-height: 1;
         }
         .app-header__subtitle {
-          margin-block-start: 0.25rem;
-          font-size: 0.6875rem;
+          margin-block-start: 0.3rem;
+          font-family: var(--font-mono);
+          font-size: 0.625rem;
           font-weight: 500;
-          letter-spacing: 0.05em;
+          letter-spacing: 0.14em;
           color: var(--color-on-surface-variant);
-          text-transform: lowercase;
+          text-transform: uppercase;
         }
 
         .search-bar {
@@ -252,17 +256,24 @@
         }
         .search-bar__input {
           inline-size: 100%;
-          padding: 0.625rem 2.75rem 0.625rem 2.5rem;
-          border: 1px solid var(--color-outline-variant);
+          padding: 0.55rem 2.75rem 0.55rem 2.35rem;
+          border: 1px solid var(--color-outline);
           border-radius: var(--radius-md);
-          background: var(--color-surface-container);
+          background: color-mix(
+            in srgb,
+            var(--color-surface-container) 82%,
+            #000 18%
+          );
           color: var(--color-on-surface);
           font-family: var(--font-sans);
           font-size: 0.875rem;
+          letter-spacing: -0.016em;
           outline: none;
           -webkit-user-select: text;
           user-select: text;
-          transition: border-color 200ms var(--motion-standard);
+          transition:
+            border-color 200ms var(--motion-standard),
+            background 200ms var(--motion-standard);
         }
         .search-bar__input::placeholder {
           color: var(--color-on-surface-variant);
@@ -310,14 +321,15 @@
         }
         .tab {
           flex-shrink: 0;
-          padding: 7px 14px;
+          padding: 6px 12px;
           border: 1px solid var(--color-outline-variant);
           border-radius: var(--radius-full);
-          background: var(--color-surface-container);
+          background: transparent;
           color: var(--color-on-surface-variant);
           font-family: var(--font-sans);
-          font-size: 0.8125rem;
+          font-size: 0.75rem;
           font-weight: 500;
+          letter-spacing: -0.01em;
           white-space: nowrap;
           cursor: pointer;
           touch-action: manipulation;
@@ -332,9 +344,9 @@
           transform: scale(0.95);
         }
         .tab--active {
-          background: var(--color-primary);
-          border-color: var(--color-primary);
-          color: var(--color-on-primary);
+          background: color-mix(in srgb, var(--color-on-surface) 10%, transparent);
+          border-color: color-mix(in srgb, var(--color-on-surface) 16%, transparent);
+          color: var(--color-on-surface);
         }
 
         .content-area {
@@ -350,23 +362,26 @@
           flex-direction: column;
           align-items: center;
           inline-size: 100%;
-          padding: 3rem 1.75rem 2.25rem;
-          border: 1px solid var(--color-outline-variant);
+          padding: 2.25rem 1.25rem 2rem;
+          border: 1px solid var(--color-outline);
           border-radius: var(--radius-xl);
-          background: var(--color-surface-container);
+          background: color-mix(
+            in srgb,
+            var(--color-surface-container) 80%,
+            #000 20%
+          );
           text-align: center;
         }
         .paywall__icon {
           display: flex;
           align-items: center;
           justify-content: center;
-          inline-size: 80px;
-          block-size: 80px;
-          border: 1px solid
-            color-mix(in srgb, var(--color-primary) 22%, transparent);
-          border-radius: var(--radius-xl);
-          background: color-mix(in srgb, var(--color-primary) 8%, transparent);
-          color: var(--color-primary);
+          inline-size: 56px;
+          block-size: 56px;
+          border: 1px solid var(--color-outline);
+          border-radius: 14px;
+          background: color-mix(in srgb, var(--color-on-surface) 4%, transparent);
+          color: var(--color-on-surface);
         }
         .paywall__greeting {
           margin-block-start: 1.5rem;
@@ -433,10 +448,14 @@
           flex-direction: column;
           align-items: center;
           inline-size: 100%;
-          padding: 3.5rem 2rem;
-          border: 1px solid var(--color-outline-variant);
+          padding: 2.75rem 1.5rem;
+          border: 1px solid var(--color-outline);
           border-radius: var(--radius-xl);
-          background: var(--color-surface-container);
+          background: color-mix(
+            in srgb,
+            var(--color-surface-container) 72%,
+            #000 28%
+          );
           text-align: center;
         }
         .empty-state__icon {
@@ -477,11 +496,11 @@
         }
 
         .stats-card {
-          margin-block-end: 0.75rem;
-          padding: 0.875rem 1rem 1rem;
-          border: 1px solid var(--color-outline-variant);
-          border-radius: var(--radius-lg);
-          background: var(--color-surface-container);
+          margin-block-end: 0.85rem;
+          padding: 0.75rem 0.2rem 0.15rem;
+          border: none;
+          border-radius: 0;
+          background: transparent;
           animation: card-in 260ms var(--motion-spring) both;
         }
         .stats-card__head {
@@ -506,22 +525,28 @@
         .stat {
           display: flex;
           flex-direction: column;
-          align-items: center;
+          align-items: flex-start;
           justify-content: center;
-          gap: 0.25rem;
-          padding: 0.625rem 0.5rem;
-          border: 1px solid var(--color-outline-variant);
-          border-radius: var(--radius-md);
-          background: var(--color-surface);
-          text-align: center;
+          gap: 0.3rem;
+          padding: 0.15rem 0.55rem;
+          border: none;
+          border-inline-start: 1px solid var(--color-outline-variant);
+          border-radius: 0;
+          background: transparent;
+          text-align: start;
           animation: card-in 320ms var(--motion-spring) var(--stat-d, 0ms) both;
+        }
+        .stat:first-child {
+          border-inline-start: none;
+          padding-inline-start: 0.15rem;
         }
         .stat__value {
           font-family: var(--font-mono);
-          font-size: 1.0625rem;
-          font-weight: 600;
+          font-size: 1.125rem;
+          font-weight: 500;
           font-variant-numeric: tabular-nums;
           line-height: 1;
+          letter-spacing: -0.03em;
           color: var(--color-on-surface);
         }
         .stat__label {
@@ -533,61 +558,29 @@
           text-transform: uppercase;
         }
         .stat--accent {
-          border-color: color-mix(
-            in srgb,
-            var(--color-stat-codes) 24%,
-            transparent
-          );
-          background: color-mix(
-            in srgb,
-            var(--color-stat-codes) 7%,
-            var(--color-surface)
-          );
+          border-color: var(--color-outline-variant);
+          background: transparent;
         }
         .stat--accent .stat__value {
           color: var(--color-stat-codes);
         }
         .stat--category {
-          border-color: color-mix(
-            in srgb,
-            var(--color-stat-category) 24%,
-            transparent
-          );
-          background: color-mix(
-            in srgb,
-            var(--color-stat-category) 7%,
-            var(--color-surface)
-          );
+          border-color: var(--color-outline-variant);
+          background: transparent;
         }
         .stat--category .stat__value {
           color: var(--color-stat-category);
         }
         .stat--ean8 {
-          border-color: color-mix(
-            in srgb,
-            var(--color-stat-ean8) 24%,
-            transparent
-          );
-          background: color-mix(
-            in srgb,
-            var(--color-stat-ean8) 7%,
-            var(--color-surface)
-          );
+          border-color: var(--color-outline-variant);
+          background: transparent;
         }
         .stat--ean8 .stat__value {
           color: var(--color-stat-ean8);
         }
         .stat--ean13 {
-          border-color: color-mix(
-            in srgb,
-            var(--color-stat-ean13) 24%,
-            transparent
-          );
-          background: color-mix(
-            in srgb,
-            var(--color-stat-ean13) 7%,
-            var(--color-surface)
-          );
+          border-color: var(--color-outline-variant);
+          background: transparent;
         }
         .stat--ean13 .stat__value {
           color: var(--color-stat-ean13);
@@ -629,9 +622,14 @@
           position: relative;
           z-index: 1;
           overflow: hidden;
-          border: 1px solid var(--color-outline-variant);
+          border: 1px solid var(--color-outline);
           border-radius: var(--radius-lg);
-          background: var(--color-surface-container);
+          background: color-mix(
+            in srgb,
+            var(--color-surface-container) 70%,
+            #0a0b0c 30%
+          );
+          box-shadow: 0 1px 0 color-mix(in srgb, #fff 4%, transparent) inset;
           transition: transform 120ms var(--motion-standard);
         }
         .barcode-card--swiping {
@@ -664,10 +662,10 @@
           cursor: pointer;
           text-align: start;
           font-family: var(--font-mono);
-          font-size: 1.125rem;
-          font-weight: 600;
+          font-size: 1.05rem;
+          font-weight: 500;
           font-variant-numeric: tabular-nums;
-          letter-spacing: 0.03em;
+          letter-spacing: 0.01em;
           line-height: 1.3;
           color: var(--color-on-surface);
           touch-action: manipulation;
@@ -734,7 +732,7 @@
           align-items: center;
           justify-content: center;
           overflow: hidden;
-          background: #fff;
+          background: #f3efe6;
           transition: background 200ms var(--motion-standard);
         }
         .render-zone canvas {
@@ -756,7 +754,7 @@
           min-block-size: 96px;
         }
         .render-zone--dark {
-          background: #1a1a1a;
+          background: #141516;
         }
         .render-zone--dark canvas {
           filter: invert(1);
@@ -1075,14 +1073,15 @@
           align-items: center;
           justify-content: center;
           gap: 8px;
-          padding: 12px 24px;
+          padding: 13px 22px;
           border: none;
           border-radius: var(--radius-full);
-          background: var(--color-primary);
-          color: var(--color-on-primary);
+          background: var(--color-on-surface);
+          color: var(--color-surface);
           font-family: var(--font-sans);
-          font-size: 0.875rem;
-          font-weight: 500;
+          font-size: 0.8125rem;
+          font-weight: 550;
+          letter-spacing: -0.015em;
           cursor: pointer;
           touch-action: manipulation;
           transition:
@@ -1103,14 +1102,13 @@
           align-items: center;
           justify-content: center;
           gap: 8px;
-          padding: 10px 20px;
-          border: 1px solid
-            color-mix(in srgb, var(--color-error) 20%, transparent);
+          padding: 10px 16px;
+          border: 1px solid var(--color-outline);
           border-radius: var(--radius-full);
-          background: transparent;
-          color: var(--color-error);
+          background: color-mix(in srgb, var(--color-surface) 55%, transparent);
+          color: var(--color-on-surface-variant);
           font-family: var(--font-sans);
-          font-size: 0.8125rem;
+          font-size: 0.75rem;
           font-weight: 500;
           cursor: pointer;
           touch-action: manipulation;
@@ -1146,18 +1144,21 @@
           display: inline-flex;
           overflow: hidden;
           border-radius: var(--radius-full);
-          box-shadow: 0 2px 12px color-mix(in srgb, #000 20%, transparent);
+          border: 1px solid color-mix(in srgb, #fff 8%, transparent);
+          box-shadow:
+            0 8px 28px color-mix(in srgb, #000 42%, transparent),
+            0 1px 0 color-mix(in srgb, #fff 8%, transparent) inset;
         }
         .scan-group__toggle {
           display: flex;
           align-items: center;
           justify-content: center;
-          inline-size: 48px;
+          inline-size: 46px;
           border: none;
           border-inline-end: 1px solid
-            color-mix(in srgb, var(--color-primary) 20%, transparent);
-          background: color-mix(in srgb, var(--color-primary) 15%, transparent);
-          color: var(--color-primary);
+            color-mix(in srgb, var(--color-surface) 18%, transparent);
+          background: color-mix(in srgb, var(--color-on-surface) 88%, #c9cdd4);
+          color: var(--color-surface);
           cursor: pointer;
           touch-action: manipulation;
           backdrop-filter: blur(20px);
@@ -1174,7 +1175,7 @@
           color: var(--color-on-primary);
           border-inline-end-color: color-mix(
             in srgb,
-            var(--color-on-primary) 20%,
+            var(--color-on-primary) 16%,
             transparent
           );
         }
@@ -1182,13 +1183,14 @@
           display: flex;
           align-items: center;
           gap: 8px;
-          padding: 14px 22px 14px 16px;
+          padding: 13px 20px 13px 14px;
           border: none;
-          background: var(--color-primary);
-          color: var(--color-on-primary);
+          background: var(--color-on-surface);
+          color: var(--color-surface);
           font-family: var(--font-sans);
-          font-size: 0.875rem;
-          font-weight: 500;
+          font-size: 0.8125rem;
+          font-weight: 550;
+          letter-spacing: -0.015em;
           cursor: pointer;
           touch-action: manipulation;
           transition: opacity 160ms var(--motion-standard);
